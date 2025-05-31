@@ -1,0 +1,10 @@
+#!/bin/bash
+
+board_model="xilinx-zynq-a9"
+
+
+qemu-system-aarch64 \
+    -M "${board_model}" -dtb "${fdt_blob}" -serial null -serial mon:stdio \
+    -display none -m 1024 \
+    -initrd "${initramfs}" -kernel "${kernel_image}"
+

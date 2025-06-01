@@ -5,6 +5,8 @@ KERNEL_SRC_DIR		:= $(EXTERN_DIR)/linux-xlnx
 
 KERNEL_DEFCONFIG	:= xilinx_zynq_defconfig
 KERNEL_IMAGE		:= zImage
+# Platform to create a device tree for (see linux-xlnx/arch/arm/boot/dts/xilinx for options)
+KERNEL_DTB		?= zynq-zc702.dtb
 
 # User can override a new configuration file to use and optionally run menuconfig after
 KERNEL_CONFIG		?= $(CONFIG_DIR)/arty-z7.config
@@ -12,18 +14,37 @@ KERNEL_CONFIG		?= $(CONFIG_DIR)/arty-z7.config
 # Out of tree build location
 KERNEL_BUILD_DIR	:= $(BUILD_DIR)/kernel
 
+.PHONY: kernel-help
 .PHONY: kernel-install kernel-build
 .PHONY: kernel-config kernel-menuconfig kernel-reconfigure
 .PHONY: kernel-fetch kernel-refresh
 .PHONY: kernel-show-vars kernel-clean
 
+kernel-help:
+	@$(PRINTF) '%s\n' ""
+	@$(PRINTF) '%s\n' "Kernel Makefile Targets:"
+	@$(PRINTF) '%s\n' "  kernel-fetch         Clone the kernel source repository"
+	@$(PRINTF) '%s\n' "  kernel-refresh       Reset and clean the kernel source tree"
+	@$(PRINTF) '%s\n' "  kernel-config        Configure the kernel using defconfig or a saved .config"
+	@$(PRINTF) '%s\n' "  kernel-menuconfig    Launch interactive configuration menu"
+	@$(PRINTF) '%s\n' "  kernel-reconfigure   Delete the config stamp to allow reconfiguring"
+	@$(PRINTF) '%s\n' "  kernel-build         Build the kernel image and modules"
+	@$(PRINTF) '%s\n' "  kernel-install       Install image, modules, headers, and compile_commands.json"
+	@$(PRINTF) '%s\n' "  kernel-clean         Delete the kernel build directory and LSP metadata"
+	@$(PRINTF) '%s\n' "  kernel-distclean     Remove both the build and source directories"
+	@$(PRINTF) '%s\n' "  kernel-show-vars     Display current kernel build configuration"
+	@$(PRINTF) '%s\n' ""
+
 kernel-install: $(KERNEL_BUILD_DIR)/.stamp-kernel-install
+	$(PRINTF) '%s\n' "Kernel install complete" >&1
 
 # Installs the kernel, modules, headers, and a compiler commands file for clangd
-$(KERNEL_BUILD_DIR)/.stamp-kernel-install: kernel-build
+$(KERNEL_BUILD_DIR)/.stamp-kernel-install: $(KERNEL_BUILD_DIR)/.stamp-kernel-install $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb
 	$(MKDIR) -pv $(STAGING_DIR)/boot $(STAGING_DIR)/lib $(STAGING_DIR)/usr
-	# Install the kernel image
+	# Install the kernel image and minimal device tree
 	$(INSTALL) -m 644 $(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/$(KERNEL_IMAGE) \
+		$(STAGING_DIR)/boot/
+	$(INSTALL) -m 644 $(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/dts/xilinx/$(KERNEL_DTB) \
 		$(STAGING_DIR)/boot/
 	# Install kernel modules
 	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
@@ -39,6 +60,16 @@ $(KERNEL_BUILD_DIR)/.stamp-kernel-install: kernel-build
 # Launches the kernel build
 kernel-build: $(KERNEL_BUILD_DIR)/.stamp-kernel-build
 	$(PRINTF) '%s\n' "Kernel build complete" >&1
+
+# Launches the kernel device tree compilation
+kernel-dtb: $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb
+	$(PRINTF) '%s\n' "Kernel device tree complete" >&1
+
+# Compiles the DTB that was chosen (the dtbs target builds everything for this arch)
+$(KERNEL_BUILD_DIR)/.stamp-kernel-dtb: $(KERNEL_BUILD_DIR)/.stamp-kernel-build
+	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
+		O=$(KERNEL_BUILD_DIR) dtbs
+	$(TOUCH) $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb
 
 # Builds the kernel (depends on kernel-config instead of the config
 # stamp, since we want to make sure the config was hashed before building)
@@ -57,7 +88,7 @@ kernel-config: $(KERNEL_BUILD_DIR)/.stamp-kernel-config
 	$(SHA256) $(KERNEL_BUILD_DIR)/.config > $(KERNEL_BUILD_DIR)/.last_config.sha256
 
 # Configures the kernel with an initial configuration
-$(KERNEL_BUILD_DIR)/.stamp-kernel-config: $(KERNEL_BUILD_DIR)
+$(KERNEL_BUILD_DIR)/.stamp-kernel-config: $(KERNEL_BUILD_DIR) $(KERNEL_SRC_DIR)/Makefile
 	# If the configuration file was unset at runtime, we run defconfig,
 	# otherwise we use the provided configuration and then run olddefconfig
 	if [[ -z "$(KERNEL_CONFIG)" ]]; then \
@@ -125,5 +156,5 @@ kernel-clean:
 	$(RM) -rf $(KERNEL_BUILD_DIR)
 
 kernel-distclean: kernel-clean
-	$(RM) -f $(KERNEL_SRC_DIR)
+	$(RM) -rf $(KERNEL_SRC_DIR)
 

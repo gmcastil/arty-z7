@@ -23,11 +23,11 @@ JOBS			:= $(shell nproc)
 # Do not inherit user-specific git settings
 export GIT_CONFIG_GLOBAL=/dev/null
 GIT_FLAGS		:= -c advice.detachedHead=false --no-single-branch --depth 1
-
-MAKEFLAGS		:= -j $(JOBS) -n
+# Make it go fast!
+MAKEFLAGS		:= -j $(JOBS)
 
 include make/common.mk
-# include make/initramfs.mk
+include make/initramfs.mk
 include make/kernel.mk
 
 .PHONY: clean
@@ -44,4 +44,7 @@ $(BUILD_DIR):
 clean: kernel-clean
 	$(RM) -rf $(BUILD_DIR)
 	$(RM) -rf $(STAGING_DIR)
+
+distclean: kernel-distclean clean
+	$(RM) -rf $(EXTERN_DIR)
 

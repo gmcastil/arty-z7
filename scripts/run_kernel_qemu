@@ -2,9 +2,13 @@
 
 board_model="xilinx-zynq-a9"
 
+proj_root="../"
+fdt_blob="${proj_root}/rootfs/boot/zynq-zc702.dtb"
+kernel_image="${proj_root}/rootfs/boot/zImage"
+initramfs="${proj_root}/initramfs.cpio.gz"
 
 qemu-system-aarch64 \
     -M "${board_model}" -dtb "${fdt_blob}" -serial null -serial mon:stdio \
     -display none -m 1024 \
-    -initrd "${initramfs}" -kernel "${kernel_image}"
+    -initrd "${initramfs}" -kernel "${kernel_image}" -append "console=ttyPS0,115200"
 

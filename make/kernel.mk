@@ -2,6 +2,7 @@
 KERNEL_SRC_URL		:= https://github.com/Xilinx/linux-xlnx.git
 KERNEL_SRC_TAG		:= xilinx-v2024.2
 KERNEL_SRC_DIR		:= $(EXTERN_DIR)/linux-xlnx
+KERNEL_RELEASE		:= $(shell [[ -f $(KERNEL_BUILD_DIR)/.stamp-kernel-release ]] && cat $(KERNEL_BUILD_DIR)/.stamp-kernel-release)
 
 KERNEL_DEFCONFIG	:= xilinx_zynq_defconfig
 KERNEL_IMAGE		:= zImage
@@ -39,7 +40,7 @@ kernel-install: $(KERNEL_BUILD_DIR)/.stamp-kernel-install
 	$(PRINTF) '%s\n' "Kernel install complete" >&1
 
 # Installs the kernel, modules, headers, and a compiler commands file for clangd
-$(KERNEL_BUILD_DIR)/.stamp-kernel-install: $(KERNEL_BUILD_DIR)/.stamp-kernel-install $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb
+$(KERNEL_BUILD_DIR)/.stamp-kernel-install: $(KERNEL_BUILD_DIR)/.stamp-kernel-build $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb
 	$(MKDIR) -pv $(STAGING_DIR)/boot $(STAGING_DIR)/lib $(STAGING_DIR)/usr
 	# Install the kernel image and minimal device tree
 	$(INSTALL) -m 644 $(KERNEL_BUILD_DIR)/arch/$(ARCH)/boot/$(KERNEL_IMAGE) \
@@ -55,6 +56,9 @@ $(KERNEL_BUILD_DIR)/.stamp-kernel-install: $(KERNEL_BUILD_DIR)/.stamp-kernel-ins
 	# Generate compile commands for clangd (i.e., LSP needs to know how we built this)
 	$(KERNEL_SRC_DIR)/scripts/clang-tools/gen_compile_commands.py \
 		-d $(KERNEL_BUILD_DIR) -o $(KERNEL_SRC_DIR)/compile_commands.json 
+	# Always rebuild the initramfs after the fact
+	$(MAKE) initramfs-clean && $(MAKE) initramfs
+	# Now we can create a stamp file
 	$(TOUCH) $@
 
 # Launches the kernel build
@@ -71,9 +75,8 @@ $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb: $(KERNEL_BUILD_DIR)/.stamp-kernel-build
 		O=$(KERNEL_BUILD_DIR) dtbs
 	$(TOUCH) $(KERNEL_BUILD_DIR)/.stamp-kernel-dtb
 
-# Builds the kernel (depends on kernel-config instead of the config
-# stamp, since we want to make sure the config was hashed before building)
-$(KERNEL_BUILD_DIR)/.stamp-kernel-build: kernel-config
+# Builds the kernel from whatever the finalized configuration was
+$(KERNEL_BUILD_DIR)/.stamp-kernel-build: $(KERNEL_BUILD_DIR)/.stamp-kernel-config
 	# Build the kernel image for booting
 	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
 		O=$(KERNEL_BUILD_DIR) $(KERNEL_IMAGE)
@@ -82,44 +85,53 @@ $(KERNEL_BUILD_DIR)/.stamp-kernel-build: kernel-config
 		O=$(KERNEL_BUILD_DIR) modules
 	$(TOUCH) $@
 
+# Use an upstream defconfig for an initial configuration, which doesn't
+# finalize a configuration (e.g., running a build after this will use existing config
+kernel-defconfig: $(KERNEL_BUILD_DIR) $(KERNEL_SRC_DIR)
+	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
+		O=$(KERNEL_BUILD_DIR) $(KERNEL_DEFCONFIG); \
+	# Running defconfig generates a new baseline .config but doesn't finalize it, so
+	# remove stale and potentially misleading artifacts
+	$(RM) -f \
+		$(KERNEL_BUILD_DIR)/.stamp-kernel-config-sha256 \
+		$(KERNEL_BUILD_DIR)/.stamp-kernel-release \
+		$(KERNEL_BUILD_DIR)/.stamp-kernel-config
+	@(PRINTF) ""
+	@(PRINTF) "Default configuration created. Run 'make kernel-menuconfig' to finalize."
+	@(PRINTF) ""
+
 # Requires that kernel configuration was performed and hashes the result
 kernel-config: $(KERNEL_BUILD_DIR)/.stamp-kernel-config
-	# Hash the .config so we know what was built
-	$(SHA256) $(KERNEL_BUILD_DIR)/.config > $(KERNEL_BUILD_DIR)/.last_config.sha256
 
-# Configures the kernel with an initial configuration
-$(KERNEL_BUILD_DIR)/.stamp-kernel-config: $(KERNEL_BUILD_DIR) $(KERNEL_SRC_DIR)/Makefile
-	# If the configuration file was unset at runtime, we run defconfig,
-	# otherwise we use the provided configuration and then run olddefconfig
-	if [[ -z "$(KERNEL_CONFIG)" ]]; then \
-		$(PRINTF) '%s\n' "No configuration provided, running defconfig" >&1; \
-		$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
-			O=$(KERNEL_BUILD_DIR) $(KERNEL_DEFCONFIG); \
-	elif [[ -f "$(KERNEL_CONFIG)" ]]; then \
-		$(PRINTF) '%s\n' "Using existing configuration, running olddefconfig" >&1; \
-		$(INSTALL) -m 664 "$(KERNEL_CONFIG)" "$(KERNEL_BUILD_DIR)/.config"; \
-		$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
-			O=$(KERNEL_BUILD_DIR) olddefconfig; \
-	else \
-		$(PRINTF) '%s\n' "Kernel configuration file not found" >&2; exit 1; \
+# Configures the kernel with the existing version controlled configuration
+$(KERNEL_BUILD_DIR)/.stamp-kernel-config: $(KERNEL_BUILD_DIR) $(KERNEL_SRC_DIR)/Makefile $(KERNEL_CONFIG)
+	@if [[ -f "$(KERNEL_BUILD_DIR)/.config" ]]; then \
+		$(PRINTF) "Warning: Overwriting existing configuration with $(KERNEL_CONFIG)"; \
 	fi
-	# When no configuration was provided, we force menuconfig
-	if [[ -z "$(KERNEL_CONFIG)" ]]; then \
-		$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
-			O=$(KERNEL_BUILD_DIR) menuconfig; \
-	fi
-	$(TOUCH) $@
+	$(INSTALL) -m 664 "$(KERNEL_CONFIG)" "$(KERNEL_BUILD_DIR)/.config"; \
+	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
+		O=$(KERNEL_BUILD_DIR) olddefconfig
+	# Finalize the configuration
+	$(SHA256) $(KERNEL_BUILD_DIR)/.config > $(KERNEL_BUILD_DIR)/.stamp-kernel-config-sha256
+	$(MAKE) -s -C $(KERNEL_SRC_DIR) O=$(KERNEL_BUILD_DIR) kernelrelease \
+		> $(KERNEL_BUILD_DIR)/.stamp-kernel-release
+	$(TOUCH) $(KERNEL_BUILD_DIR)/.stamp-kernel-config
 
 # Runs the kernel menuconfig if the configuration has already been initialized
 kernel-menuconfig: $(KERNEL_BUILD_DIR)/.stamp-kernel-config
 	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
 		O=$(KERNEL_BUILD_DIR) menuconfig
-	# Hash the .config now, since we may have touched it
-	$(SHA256) $(KERNEL_BUILD_DIR)/.config > $(KERNEL_BUILD_DIR)/.last_config.sha256
+	# Finalize the configuration
+	$(SHA256) $(KERNEL_BUILD_DIR)/.config > $(KERNEL_BUILD_DIR)/.stamp-kernel-config-sha256
+	$(MAKE) -s -C $(KERNEL_SRC_DIR) O=$(KERNEL_BUILD_DIR) kernelrelease \
+		> $(KERNEL_BUILD_DIR)/.stamp-kernel-release
+	$(TOUCH) $(KERNEL_BUILD_DIR)/.stamp-kernel-config
 
 # Resets the configuration
 kernel-reconfigure:
+	$(RM) -f $(KERNEL_BUILD_DIR)/.stamp-kernel-config-sha256
 	$(RM) -f $(KERNEL_BUILD_DIR)/.stamp-kernel-config
+	$(RM) -f $(KERNEL_BUILD_DIR)/.stamp-kernel-release
 	$(MAKE) kernel-config
 
 # Clones the kernel source repository

@@ -6,14 +6,17 @@
 SHELL			:= /bin/bash
 GIT			:= git
 XSCT			:= xsct
+EXIT			:= exit
 BOOTGEN			:= bootgen
 DTC			:= dtc
-RM			:= rm
+RM			:= rm -v
+CP			:= cp -v
+YES			:= yes
 SHA256			:= sha256sum
 TOUCH			:= touch
 INSTALL			:= install
-MKDIR			:= mkdir
-PRINTF			:= printf
+MKDIR			:= mkdir -v
+PRINTF			:= printf '%s\n'
 MKNOD			:= mknod
 FAKEROOT		:= fakeroot
 

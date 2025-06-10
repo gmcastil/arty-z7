@@ -1,0 +1,9 @@
+# Ignore these initramfs directories - they get created during builds and
+# module, header, busybox installs
+bin/
+lib/
+linuxrc
+sbin/
+usr/bin/
+usr/include/
+usr/sbin/

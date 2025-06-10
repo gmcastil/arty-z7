@@ -3,47 +3,37 @@ include make/busybox.mk
 INITRAMFS_DIR		:= $(PWD)/initramfs
 INITRAMFS_IMAGE		:= $(PWD)/initramfs.cpio.gz
 
-INITRAMFS_FILES		:= $(INITRAMFS_DIR)/init
-
-INITRAMFS_SYMLINKS	:= \
-			   $(INITRAMFS_DIR)/bin/sh \
-			   $(INITRAMFS_DIR)/bin/ls \
-			   $(INITRAMFS_DIR)/bin/mount \
-			   $(INITRAMFS_DIR)/bin/umount \
-			   $(INITRAMFS_DIR)/bin/mkdir \
-			   $(INITRAMFS_DIR)/bin/echo \
-			   $(INITRAMFS_DIR)/bin/cat \
-			   $(INITRAMFS_DIR)/bin/dmesg \
-			   $(INITRAMFS_DIR)/bin/sleep \
-			   $(INITRAMFS_DIR)/bin/reboot
-
-INITRAMFS_MODULES_DEP	:= $(INITRAMFS_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/modules.dep
+# This needs to be lazily evaluated since the kernel release string
+# doesnt necessarily exist at parsing time
+INITRAMFS_MODULES_DEP	= $(INITRAMFS_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/modules.dep
+# This file always gets installed as part of `make headers_install` so
+# we use it as a sentinel file
+INITRAMFS_HEADERS_DEP	= $(INITRAMFS_DIR)/usr/include/linux/version.h
 
 .PHONY: initramfs initramfs-clean
 
 initramfs: $(INITRAMFS_IMAGE)
 
+#$(INITRAMFS_MODULES_DEP) \
+
 # Once files and symlinks are made, we add an extra few directories and
 # then archive it all up
-$(INITRAMFS_IMAGE): $(INITRAMFS_FILES) $(INITRAMFS_MODULES_DEP) busybox-install
-	$(MKDIR) -p $(INITRAMFS_DIR)/{dev,sys,proc}
-	$(MKDIR) -p $(INITRAMFS_DIR)/{mnt,tmp,var}
+$(INITRAMFS_IMAGE): busybox-install $(INITRAMFS_MODULES_DEP) $(INITRAMFS_HEADERS_DEP)
+	# Just archive the entire contents - whatever is in there goes!
 	cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $@
-
-# Kernel is going to look for init in the root directory (not sure that
-# CONFIG_DIR is the right spot for these but its ok for now)
-$(INITRAMFS_DIR)/init: $(CONFIG_DIR)/initramfs.init $(INITRAMFS_DIR)
-	$(INSTALL) -m 744 $< $@
-
-# Need to explicitly define this directory, or these might get done out of order
-$(INITRAMFS_DIR):
-	$(MKDIR) -p $@
 
 # Copy kernel modules from the staging directory to the initramfs
 $(INITRAMFS_MODULES_DEP): $(KERNEL_STAMP_INSTALL)
 	$(MKDIR) -p $(INITRAMFS_DIR)/lib/modules
 	$(CP) -av $(STAGING_DIR)/lib/modules/$(KERNEL_RELEASE_STR) $(INITRAMFS_DIR)/lib/modules/
+	# Adjust the symlink to the source tree to point to the headers
+	$(RM) -fv $(INITRAMFS_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/build
+	$(LN) -sfv /usr/include $(INITRAMFS_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/build
+
+$(INITRAMFS_HEADERS_DEP): $(KERNEL_STAMP_INSTALL)
+	$(MKDIR) -p $(INITRAMFS_DIR)/usr
+	$(CP) -av $(STAGING_DIR)/usr/include $(INITRAMFS_DIR)/usr/
 
 initramfs-clean:
-	$(RM) -rf $(INITRAMFS_DIR)
+	$(GIT) clean -dfx $(INITRAMFS_DIR)
 	$(RM) -f $(INITRAMFS_IMAGE)

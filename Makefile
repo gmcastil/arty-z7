@@ -11,6 +11,7 @@ BOOTGEN			:= bootgen
 DTC			:= dtc
 RM			:= rm -v
 CP			:= cp -v
+LN			:= ln -v
 YES			:= yes
 SHA256			:= sha256sum
 TOUCH			:= touch
@@ -30,8 +31,8 @@ GIT_FLAGS		:= -c advice.detachedHead=false --no-single-branch --depth 1
 MAKEFLAGS		:= -j $(JOBS)
 
 include make/common.mk
-include make/initramfs.mk
 include make/kernel.mk
+include make/initramfs.mk
 
 .PHONY: clean
 # Targets that use XSCT to generate output products need to be run serially

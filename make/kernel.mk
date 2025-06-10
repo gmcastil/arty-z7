@@ -16,7 +16,9 @@ KERNEL_BUILD_DIR		:= $(BUILD_DIR)/kernel
 # Build artifacts for usage elsewhere
 KERNEL_RELEASE			:= $(KERNEL_BUILD_DIR)/.kernel-release
 KERNEL_CONFIG_SHA256		:= $(KERNEL_BUILD_DIR)/.kernel-config-sha256
-KERNEL_RELEASE_STR		:= $(shell [[ -f $(KERNEL_RELEASE) ]] && cat $(KERNEL_RELEASE))
+# The kernel release string needs to be computed several times later when setting up paths
+# or copying modules and headers. So we use lazy evaluation here.
+KERNEL_RELEASE_STR		= $(shell [[ -f $(KERNEL_RELEASE) ]] && cat $(KERNEL_RELEASE))
 
 # Dependancy stamps
 KERNEL_STAMP_CONFIG_FINAL	:= $(KERNEL_BUILD_DIR)/.stamp-kernel-config-final
@@ -62,6 +64,11 @@ $(KERNEL_STAMP_INSTALL): $(KERNEL_STAMP_BUILD) $(KERNEL_STAMP_BUILD_DTB)
 	# Install kernel headers
 	$(MAKE) -C $(KERNEL_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
 		O=$(KERNEL_BUILD_DIR) INSTALL_HDR_PATH=$(STAGING_DIR)/usr headers_install
+	# Adjust the symlink in the rootfs directory so that it points to where
+	# the headers are rather than a hard coded path to the source tree. The same correction
+	# needs to be made when constructing the initramfs.
+	$(RM) -fv $(STAGING_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/build
+	$(LN) -sfv /usr/include $(STAGING_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/build
 	# Generate compile commands for clangd (i.e., LSP needs to know how we built this)
 	$(KERNEL_SRC_DIR)/scripts/clang-tools/gen_compile_commands.py \
 		-d $(KERNEL_BUILD_DIR) -o $(KERNEL_SRC_DIR)/compile_commands.json 

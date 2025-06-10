@@ -10,7 +10,7 @@ INITRAMFS_MODULES_DEP	= $(INITRAMFS_DIR)/lib/modules/$(KERNEL_RELEASE_STR)/modul
 # we use it as a sentinel file
 INITRAMFS_HEADERS_DEP	= $(INITRAMFS_DIR)/usr/include/linux/version.h
 
-.PHONY: initramfs initramfs-clean
+.PHONY: initramfs initramfs-refresh initramfs-clean
 
 initramfs: $(INITRAMFS_IMAGE)
 
@@ -33,6 +33,14 @@ $(INITRAMFS_MODULES_DEP): $(KERNEL_STAMP_INSTALL)
 $(INITRAMFS_HEADERS_DEP): $(KERNEL_STAMP_INSTALL)
 	$(MKDIR) -p $(INITRAMFS_DIR)/usr
 	$(CP) -av $(STAGING_DIR)/usr/include $(INITRAMFS_DIR)/usr/
+
+# Recreates the archive from whatever is in the initramfs directory
+# (requires that its been run before or has the necessary input products
+# to have been run before)
+initramfs-refresh: $(BUSYBOX_STAMP_INSTALL) $(INITRAMFS_MODULES_DEP) $(INITRAMFS_HEADERS_DEP)
+	$(RM) -fv $(INITRAMFS_IMAGE)
+	# Just archive the entire contents - whatever is in there goes!
+	cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $(INITRAMFS_IMAGE)
 
 initramfs-clean:
 	$(GIT) clean -dfx $(INITRAMFS_DIR)

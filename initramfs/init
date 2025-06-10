@@ -1,33 +1,11 @@
 #!/bin/sh
 
-warning () {
-    msg="${1}"
-    printf 'Warning: %s\n' "${msg}" >&2
-    return 0
-}
+# Need those init functions
+. /etc/init.d/functions.sh
 
-eth_dev='eth0'
-udhcpc_script="/usr/share/udhcpc/default.script"
+# Entry point of init script
+echo "Starting init..."
 
-# Mount virtual filesystems before we get started
-mount -t proc proc /proc
-mount -t sysfs sysfs /sys
-mount -t devtmpfs devtmpfs /dev
-
-# Try to bring up the ethernet device and if successful, try to do the rest, if
-# not, abandon networking
-if ip link set "${eth_dev}" up; then
-    # This willl reach into the location defined by CONFIG_BUSYBOX
-    if [ ! -f "${udhcpc_script}" ]; then
-        warning "DHCP client script not installed"
-    else
-        if ! udhcpc -v -i "${eth_dev}"; then
-            warning "Could not obtain IP address"
-        fi
-    fi
-else
-    warning "Could not bring up device ${eth_dev}"
-fi
-
-exec /bin/sh
-
+for script in /etc/init.d/[0-9]*.sh; do
+    "${script}"
+done

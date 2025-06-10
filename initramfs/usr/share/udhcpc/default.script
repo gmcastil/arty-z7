@@ -1,0 +1,52 @@
+#!/bin/sh
+
+
+# Dump everything to a log file for inspection
+{
+    echo "-------- $0 called with: $1 --------"
+    env
+    echo "-----------------------------------"
+} >> /tmp/udhcpc.log
+
+# Handle basic DHCP events
+case "$1" in
+    # Clean any old config
+    deconfig)
+        ip addr flush dev "${interface}"
+        ;;
+
+    renew|bound)
+        ip addr add "${ip}/${subnet}" dev "${interface}"
+        ip route add default via "${router}"
+
+        # Create resolv.conf if DNS was provided
+        echo -n > /etc/resolv.conf
+        for i in $dns; do
+            echo "nameserver $i" >> /etc/resolv.conf
+        done
+        ;;
+esac
+
+exit 0
+# -------- /usr/share/udhcpc/default.script called with: deconfig --------
+# SHLVL=2
+# HOME=/
+# interface=eth0
+# TERM=linux
+# PWD=/
+# 
+# -------- /usr/share/udhcpc/default.script called with: bound --------
+# subnet=255.255.255.0
+# router=10.0.2.2
+# SHLVL=2
+# HOME=/
+# interface=eth0
+# dns=10.0.2.3
+# siaddr=10.0.2.2
+# serverid=10.0.2.2
+# TERM=linux
+# ip=10.0.2.15
+# mask=24
+# lease=86400
+# PWD=/
+# opt53=05

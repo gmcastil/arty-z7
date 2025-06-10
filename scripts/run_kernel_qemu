@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# qemu-system-aarch64 \
-#     -M "${board_model}" -dtb "${fdt_blob}" -serial null -serial mon:stdio \
-#     -display none -m 1024 \
-#     -netdev user,id=net0,hostfwd=udp::6666-:6666 \
-#     -initrd "${initramfs}" -kernel "${kernel_image}" -append "console=ttyPS0,115200"
-
 check_boot_files () {
     for file in "$@"; do
         if [[ ! -f "${file}" ]]; then
@@ -15,13 +9,13 @@ check_boot_files () {
     return 0
 }
 
-#qemu_emulator=/opt/bin/qemu-system-aarch64
+# Per the QEMU documentation, this machine is used with this version of the
+# system emulator
 qemu_emulator=qemu-system-aarch64
 machine=xilinx-zynq-a9
 
 proj_dir="$(realpath -e ./)"
 rootfs_dir="${proj_dir}/rootfs"
-shared_dir="${proj_dir}/shared"
 
 dtb_path="${rootfs_dir}/boot/zynq-zc702.dtb"
 kernel_path="${rootfs_dir}/boot/zImage"
@@ -29,28 +23,16 @@ initrd_path="${proj_dir}/initramfs.cpio.gz"
 
 # Kernel command line arguments - don't disable fabric clocks that don't have a
 # drivers
-# kernel_cmd_line="console=ttyPS0,115200 clk_ignore_unused"
-kernel_cmd_line="quiet"
+kernel_cmd_line=""
+# Basic options here
+kernel_cmd_line+=" console=ttyPS0,115200"
+# Tells the kernel to not disable clocks that are referenced by a device tree
+# entry
+kernel_cmd_line+=" clk_ignore_unused"
 
-# Building up the argument to the -fsdev option that gets
-fsdev_cmd=""
-fsdev_cmd+="local"                      # fsdriver
-fsdev_cmd+=",id=fsdev0"                 # Identifier for the device
-fsdev_cmd+=",path=${shared_dir}"        # Export parth in host
-fsdev_cmd+=",security_model=none"       # Full bidirectional access, no failures
-fsdev_cmd+=",writeout=immediate"        # Only supported value
-# fsdev_cmd+=",readonly=on"             # Default is read-write
-
-virtio_9p_device=""
-virtio_9p_device+="virtio-9p-device"    # Driver variant, in this case PCI
-virtio_9p_device+=",fsdev=fsdev0"       # Same ID used with -fsdev option
-virtio_9p_device+=",mount_tag=shared"   # Tag name used by the guest to mount it
-virtio_9p_device+=",id=fs0"
-
-virtio_mmio=""
-virtio_mmio+="virtio-mmio"
-virtio_mmio+=",device=fs0"
-virtio_mmio+=",addr=0x1000"
+if [[ "${1}" == '--quiet' ]]; then
+    kernel_cmd_line+=" quiet"
+fi
 
 # Do some basic checks of the environment and boot components before we
 # invoke the emulator
@@ -59,14 +41,6 @@ command -v "${qemu_emulator}" >/dev/null 2>&1 || \
 
 check_boot_files "${dtb_path}" "${kernel_path}" "${initrd_path}" || \
     { printf '%s\n' "Error: Missing boot files" >&2; exit 1; }
-
-# Check that the shared location exists too
-mkdir -pv "${shared_dir}"
-if [[ ! -w "${shared_dir}" ]]; then
-    printf '%s\n' "Error: Shared directory does not exist or is not writable by current user" >&2
-    exit 1
-fi
-# Invoke the emulator for the Zynq board with the appropriate boot files. 
 
 # From the QEMU system emulation documentation, the general form of calling the
 # emulator is
@@ -79,10 +53,6 @@ fi
 #                 [interface opts] \
 #                 [boot opts]
 #
-# printf '%s\n' "-fsdev ${fsdev_cmd}"
-# printf '%s\n' "-device ${virtio_9p_device}"
-# printf '%s\n' "-device ${virtio_mmio}"
-
 "${qemu_emulator}" \
     -machine type="${machine}" \
     -accel tcg \
@@ -97,8 +67,3 @@ fi
     -net nic -net user,hostfwd=udp::6666-:6666 \
     -m 2048M
 
-    # -net user,hostfwd=udp::6666-:6666 \
-    # -netdev user,id=net0,hostfwd=udp::6666-:6666 \
-    # -fsdev "${fsdev_cmd}" \
-    # -device "${virtio_mmio}" \
-    # -device "${virtio_9p_device}" \

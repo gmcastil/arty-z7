@@ -20,7 +20,7 @@ warn () {
 action () {
     desc="${1}"
     shift
-    printf '%-40s' "${desc}" >&1
+    printf '%-60s' "${desc}" >&1
     "$@" >/dev/null 2>&1
     status=$?
     if [ ${status} -eq 0 ]; then
@@ -28,6 +28,13 @@ action () {
     else
         fail
     fi
+    return
+}
+
+init_done () {
+    msg="${1}"
+    printf '%-60s' "${msg}" >&1
+    printf '[ %sOK%s ]\n' ${ansi_green} ${ansi_normal} >&1
     return
 }
 

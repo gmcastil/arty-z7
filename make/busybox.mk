@@ -14,9 +14,7 @@ BUSYBOX_STAMP_INSTALL	:= $(BUSYBOX_BUILD_DIR)/.stamp-busybox-install
 # This target installs the busybox binary and all applets where the
 # initramfs expects them to be. This should only be called by the
 # initramfs build process.
-busybox-install: $(BUSYBOX_STAMP_INSTALL)
-
-$(BUSYBOX_STAMP_INSTALL): $(BUSYBOX_BIN) $(INITRAMFS_DIR)
+busybox-install: $(BUSYBOX_BIN) $(INITRAMFS_DIR)
 	$(MAKE) -C $(BUSYBOX_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
 		O=$(BUSYBOX_BUILD_DIR) CONFIG_PREFIX=$(INITRAMFS_DIR) install
 

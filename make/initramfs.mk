@@ -20,7 +20,7 @@ initramfs: $(INITRAMFS_IMAGE)
 # then archive it all up
 $(INITRAMFS_IMAGE): busybox-install $(INITRAMFS_MODULES_DEP) $(INITRAMFS_HEADERS_DEP)
 	# Just archive the entire contents - whatever is in there goes!
-	cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $@
+	$(FAKEROOT) sh -c 'cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $@'
 
 # Copy kernel modules from the staging directory to the initramfs
 $(INITRAMFS_MODULES_DEP): $(KERNEL_STAMP_INSTALL)
@@ -40,7 +40,7 @@ $(INITRAMFS_HEADERS_DEP): $(KERNEL_STAMP_INSTALL)
 initramfs-refresh: $(BUSYBOX_STAMP_INSTALL) $(INITRAMFS_MODULES_DEP) $(INITRAMFS_HEADERS_DEP)
 	$(RM) -fv $(INITRAMFS_IMAGE)
 	# Just archive the entire contents - whatever is in there goes!
-	cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $(INITRAMFS_IMAGE)
+	$(FAKEROOT) sh -c 'cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $(INITRAMFS_IMAGE)'
 
 initramfs-clean:
 	$(GIT) clean -dfx $(INITRAMFS_DIR)

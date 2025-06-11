@@ -3,6 +3,7 @@ This repository documents the process of initial bring-up for the
 Digilent Arty Z7-20 development board as a platform for embedded
 hardware and software development.
 
+- QEMU emulation
 - U-boot and FSBL integration
 - Device tree creation and kernel configuration
 - Some tooling and LSP setup for kernel development

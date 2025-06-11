@@ -27,25 +27,23 @@ KERNEL_STAMP_BUILD_DTB		:= $(KERNEL_BUILD_DIR)/.stamp-kernel-build-dtb
 KERNEL_STAMP_INSTALL		:= $(KERNEL_BUILD_DIR)/.stamp-kernel-install
 
 .PHONY: kernel-help
-.PHONY: kernel-install kernel-build
+.PHONY: kernel-install kernel-build kernel-dtb
 .PHONY: kernel-config kernel-menuconfig kernel-reconfigure
 .PHONY: kernel-fetch kernel-refresh
-.PHONY: kernel-show-vars kernel-clean
+.PHONY: kernel-clean kernel-distclean
 
 kernel-help:
 	@$(PRINTF) "Kernel build targets:"
+	@$(PRINTF) "  kernel-distclean     Remove both kernel build and source trees"
+	@$(PRINTF) "  kernel-clean         Deletes the kernel build directory and cleans the source tree"
 	@$(PRINTF) "  kernel-fetch         Clone the kernel source repository"
 	@$(PRINTF) "  kernel-refresh       Reset and clean the kernel source tree"
-	@$(PRINTF) "  kernel-defconfig     Initialize .config from $(KERNEL_DEFCONFIG); not finalized"
-	@$(PRINTF) "  kernel-config        Overwrite with saved config and finalize (hash + release)"
+	@$(PRINTF) "  kernel-defconfig     Initialize .config from $(KERNEL_DEFCONFIG)"
+	@$(PRINTF) "  kernel-config        Overwrite with saved config"
 	@$(PRINTF) "  kernel-menuconfig    Run menuconfig on existing .config and finalize"
-	@$(PRINTF) "  kernel-reconfigure   Delete config/release stamps and re-run kernel-config"
 	@$(PRINTF) "  kernel-build         Build kernel image and modules"
 	@$(PRINTF) "  kernel-dtb           Build selected DTB: $(KERNEL_DTB)"
 	@$(PRINTF) "  kernel-install       Install image, modules, headers, and LSP metadata"
-	@$(PRINTF) "  kernel-clean         Delete kernel build artifacts"
-	@$(PRINTF) "  kernel-distclean     Remove both kernel build and source trees"
-	@$(PRINTF) "  kernel-show-vars     Show current kernel configuration variables"
 
 kernel-install: $(KERNEL_STAMP_INSTALL)
 	$(PRINTF) "Kernel install complete" >&1
@@ -115,9 +113,6 @@ kernel-config: $(KERNEL_BUILD_DIR) $(KERNEL_SRC_DIR)/Makefile
 		O=$(KERNEL_BUILD_DIR) olddefconfig
 	# Configuration might have been overwritten so we invalidate it here
 	$(RM) -f $(KERNEL_CONFIG_SHA256) $(KERNEL_RELEASE) $(KERNEL_STAMP_CONFIG_FINAL)
-	@$(PRINTF) ""
-	@$(PRINTF) "Info: Existing configuration created. Run 'make kernel-config-final' to finalize."
-	@$(PRINTF) ""
 
 # Runs the kernel menuconfig with existing configuration or runs `make defconfig` if no
 # kernel configuration has been created yet
@@ -149,9 +144,6 @@ kernel-defconfig: $(KERNEL_BUILD_DIR) $(KERNEL_SRC_DIR)/Makefile
 		$(KERNEL_CONFIG_SHA256) \
 		$(KERNEL_RELEASE) \
 		$(KERNEL_STAMP_CONFIG_FINAL)
-	@$(PRINTF) ""
-	@$(PRINTF) "Info: Default configuration created. Run 'make kernel-config-final' to finalize."
-	@$(PRINTF) ""
 
 $(KERNEL_BUILD_DIR)/.config:
 	@$(PRINTF) "Error: No .config file found in $(KERNEL_BUILD_DIR). Run one of `kernel-config`, `kernel-menuconfig`, or `kernel-defconfig`" >&2
@@ -168,17 +160,6 @@ $(KERNEL_SRC_DIR)/Makefile: $(EXTERN_DIR)
 		$(GIT) clone $(GIT_FLAGS) --branch $(KERNEL_SRC_TAG) $(KERNEL_SRC_URL) $(KERNEL_SRC_DIR); \
 	fi
 
-# Shows internal variables for debugging
-kernel-show-vars:
-	@$(PRINTF) "KERNEL_SRC_URL     = $(KERNEL_SRC_URL)"
-	@$(PRINTF) "KERNEL_SRC_TAG     = $(KERNEL_SRC_TAG)"
-	@$(PRINTF) "KERNEL_SRC_DIR     = $(KERNEL_SRC_DIR)"
-	@$(PRINTF) "KERNEL_DEFCONFIG   = $(KERNEL_DEFCONFIG)"
-	@$(PRINTF) "KERNEL_IMAGE       = $(KERNEL_IMAGE)"
-	@$(PRINTF) "KERNEL_DTB         = $(KERNEL_DTB)"
-	@$(PRINTF) "KERNEL_CONFIG      = $(KERNEL_CONFIG)"
-	@$(PRINTF) "KERNEL_BUILD_DIR   = $(KERNEL_BUILD_DIR)"
-
 # Aggressively cleans the kernel source repository
 kernel-refresh:
 	if [[ -d $(KERNEL_SRC_DIR) ]]; then \
@@ -187,7 +168,8 @@ kernel-refresh:
 		$(GIT) -C $(KERNEL_SRC_DIR) clean -dfx; \
 	fi
 
-kernel-clean:
+# Cleans the kernel source tree and deletes the build directory
+kernel-clean: kernel-refresh
 	$(RM) -f $(KERNEL_SRC_DIR)/compile_commands.json
 	$(RM) -rf $(KERNEL_BUILD_DIR)
 

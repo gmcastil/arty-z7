@@ -14,12 +14,9 @@ INITRAMFS_HEADERS_DEP	= $(INITRAMFS_DIR)/usr/include/linux/version.h
 
 initramfs: $(INITRAMFS_IMAGE)
 
-#$(INITRAMFS_MODULES_DEP) \
-
 # Once files and symlinks are made, we add an extra few directories and
 # then archive it all up
 $(INITRAMFS_IMAGE): busybox-install $(INITRAMFS_MODULES_DEP) $(INITRAMFS_HEADERS_DEP)
-	# Just archive the entire contents - whatever is in there goes!
 	$(FAKEROOT) sh -c 'cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $@'
 
 # Copy kernel modules from the staging directory to the initramfs
@@ -37,7 +34,7 @@ $(INITRAMFS_HEADERS_DEP): $(KERNEL_STAMP_INSTALL)
 # Recreates the archive from whatever is in the initramfs directory
 # (requires that its been run before or has the necessary input products
 # to have been run before)
-initramfs-refresh: $(BUSYBOX_STAMP_INSTALL) $(INITRAMFS_MODULES_DEP) $(INITRAMFS_HEADERS_DEP)
+initramfs-refresh:
 	$(RM) -fv $(INITRAMFS_IMAGE)
 	# Just archive the entire contents - whatever is in there goes!
 	$(FAKEROOT) sh -c 'cd $(INITRAMFS_DIR) && find . | cpio -o -H newc | gzip -n > $(INITRAMFS_IMAGE)'

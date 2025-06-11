@@ -1,4 +1,4 @@
-include make/busybox.mk
+include mk/busybox.mk
 
 INITRAMFS_DIR		:= $(PWD)/initramfs
 INITRAMFS_IMAGE		:= $(PWD)/initramfs.cpio.gz

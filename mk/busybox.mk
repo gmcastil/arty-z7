@@ -25,8 +25,12 @@ $(BUSYBOX_BIN): $(BUSYBOX_BUILD_DIR)/.config
 	$(MAKE) -C $(BUSYBOX_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
 		O=$(BUSYBOX_BUILD_DIR)
 
+busybox-menuconfig: $(BUSYBOX_BUILD_DIR)/.config
+	$(MAKE) -C $(BUSYBOX_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
+		O=$(BUSYBOX_BUILD_DIR) menuconfig
+
 $(BUSYBOX_BUILD_DIR)/.config: $(BUSYBOX_SRC_DIR)/Makefile
-	@mkdir -p $(@D)
+	$(MKDIR) -p $(@D)
 	# Clean everything out, including old .config
 	$(MAKE) -C $(BUSYBOX_SRC_DIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) \
 		O=$(BUSYBOX_BUILD_DIR) mrproper
@@ -40,6 +44,6 @@ $(BUSYBOX_SRC_DIR)/Makefile: $(EXTERN_DIR)
 	$(GIT) clone $(GIT_FLAGS) --branch $(BUSYBOX_SRC_TAG) $(BUSYBOX_SRC_URL) $(BUSYBOX_SRC_DIR)
 
 busybox-clean:
-	rm -rf $(BUSYBOX_BUILD_DIR)
+	$(RM) -rf $(BUSYBOX_BUILD_DIR)
 
 

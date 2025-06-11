@@ -30,9 +30,21 @@ GIT_FLAGS		:= -c advice.detachedHead=false --no-single-branch --depth 1
 # Make it go fast!
 MAKEFLAGS		:= -j $(JOBS)
 
-include make/common.mk
-include make/kernel.mk
-include make/initramfs.mk
+# Shared directories
+BUILD_DIR		:= $(PWD)/build
+CONFIG_DIR		:= $(PWD)/config
+STAGING_DIR		:= $(PWD)/rootfs
+
+# Cloned git repository locations
+EXTERN_DIR		:= $(PWD)/extern
+
+# Toolchain parameters
+ARCH			:= arm
+CROSS_COMPILE		:= arm-linux-gnueabihf-
+
+include mk/kernel.mk
+include mk/initramfs.mk
+include mk/dtb.mk
 
 .PHONY: clean
 # Targets that use XSCT to generate output products need to be run serially
@@ -45,7 +57,7 @@ $(BUILD_DIR):
 	$(MKDIR) -p $@
 
 # -- Utility targets --
-clean: kernel-clean
+clean: kernel-clean initramfs-clean
 	$(RM) -rf $(BUILD_DIR)
 	$(RM) -rf $(STAGING_DIR)
 

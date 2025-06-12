@@ -46,7 +46,7 @@ include mk/kernel.mk
 include mk/initramfs.mk
 include mk/dtb.mk
 
-.PHONY: clean
+.PHONY: clean distclean
 # Targets that use XSCT to generate output products need to be run serially
 # .NOTPARALLEL: %/$(FSBL_ELF) %/system-top.dts
 

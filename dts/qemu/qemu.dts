@@ -1,0 +1,63 @@
+/*
+ * Top level QEMU device tree for Zynq 7000-based board
+ */
+
+/dts-v1/;
+/ {
+	model = "Zynq 7000 QEMU Development Platform";
+	compatible = "xlnx,zynq-7000";
+
+};
+
+/* Verified in the pinctrl-zynq.c driver source code */
+#define SLEW_RATE_SLOW 0
+#define SLEW_RATE_FAST 1
+
+/* Lifted from pinctrl/..... */
+#define IO_STANDARD_LVCMOS18	1
+#define IO_STANDARD_LVCMOS25	2
+#define IO_STANDARD_LVCMOS33	3
+#define IO_STANDARD_HSTL	4
+
+#include "zynq-7000.dtsi"
+
+/* Configure the MIO - probably the most sanguine comment ever made. */
+&pinctrl0 {
+
+	/* 
+	 * MIO14 and 15 are used for UART0 - see UG585 Table 19-4
+	 * 
+	 */
+	pinctrl_uart0_default: uart0_default {
+		/* Groups and MIO pins are found in drivers/pinctrl/pinctrl-zynq.c */
+		mux {
+			groups = "uart0_1_grp";
+			function = "uart0";
+		};
+		conf {
+			groups = "uart0_1_grp";
+			slew-rate = <SLEW_RATE_SLOW>;
+			/* Based on the Arty schematic, bank 500 is driven with 3.3V */
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+		conf-rx {
+			pins = "MIO14";
+			/* RX pin is actively listening */
+			bias-high-impedance;
+		};
+		conf-tx {
+			pins = "MIO15";
+			/* TX pin is being driven, so disable all pull up/down */
+			bias-disable;
+		};
+	};
+};
+
+&uart0 {
+	/* UART0 in the PS is available during all boot phase */
+	bootph-all;
+	status = "okay";
+	pinctrl-names = "default";
+};
+
+

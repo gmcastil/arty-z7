@@ -15,9 +15,11 @@ qemu_emulator=qemu-system-aarch64
 machine=xilinx-zynq-a9
 
 proj_dir="$(realpath -e ./)"
+build_dir="${proj_dir}/build"
 rootfs_dir="${proj_dir}/rootfs"
 
-dtb_path="${rootfs_dir}/boot/zynq-zc702.dtb"
+# dtb_path="${rootfs_dir}/boot/zynq-zc702.dtb"
+dtb_path="${build_dir}/dtb/system-qemu.dtb"
 kernel_path="${rootfs_dir}/boot/zImage"
 initrd_path="${proj_dir}/initramfs.cpio.gz"
 
@@ -57,8 +59,8 @@ check_boot_files "${dtb_path}" "${kernel_path}" "${initrd_path}" || \
     -machine type="${machine}" \
     -accel tcg \
     -dtb "${dtb_path}" \
-    -serial null \
     -serial stdio \
+    -serial null \
     -monitor telnet:127.0.0.1:55555,server,nowait \
     -display none \
     -initrd "${initrd_path}" \

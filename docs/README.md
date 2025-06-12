@@ -66,6 +66,12 @@ The details of the NFS share and other configuration files may also require manu
 It is expected that an `initramfs` will be developed later for use on
 the actual hardware.
 
+## Device Tree
+There are two device tree top level source files - it's important to not
+over-abstract here like Xilinx does. If I can't read the device tree
+source in 30 seconds and have a clue what is on the board, it's too
+complicated
+
 # Development
 
 ## Emulated Development (QEMU)

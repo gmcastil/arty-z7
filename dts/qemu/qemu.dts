@@ -13,21 +13,19 @@
 #define SLEW_RATE_SLOW 0
 #define SLEW_RATE_FAST 1
 
-/* Lifted from pinctrl/..... */
+/* From include/dt-bindings/pinctrl/pinctrl-zynq.h */
 #define IO_STANDARD_LVCMOS18	1
 #define IO_STANDARD_LVCMOS25	2
 #define IO_STANDARD_LVCMOS33	3
 #define IO_STANDARD_HSTL	4
 
+/* From linux-xlnx/arch/arm/boot/dts/xilinx/ fork */
 #include "zynq-7000.dtsi"
 
 /* Configure the MIO - probably the most sanguine comment ever made. */
 &pinctrl0 {
 
-	/* 
-	 * MIO14 and 15 are used for UART0 - see UG585 Table 19-4
-	 * 
-	 */
+	/* UART0 - See UG585 Table 19-4 for MIO pin assignments */
 	pinctrl_uart0_default: uart0_default {
 		/* Groups and MIO pins are found in drivers/pinctrl/pinctrl-zynq.c */
 		mux {
@@ -51,13 +49,81 @@
 			bias-disable;
 		};
 	};
+
+	/* SDIO0 - See UG585 Table 13-1 for MIO pin assignments */
+	pinctrl_sdhci0_pins_default: sdhci0_pins_default {
+
+		/*
+		* The SDHI interface is split into two groups, one for data, command and
+		* clock, the second for the card detect (CD) signal. The Arty does not use
+		* the WC or PC pins.
+		*/
+		mux {
+			groups = "sdio0_2_grp";
+			function = "sdio0";
+		};
+
+		conf {
+			slew-rate = <SLEW_RATE_SLOW>;
+			bias-pullup;
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+	};
+
+	pinctrl_sdhci0_cd_default: sdhci0_cd_default {
+
+		/* Per UG585, the card detect (CD) pin can be attached to any pin except
+		 * MIO 7 and 8. MIO
+		 */
+		mux {
+			groups = "gpio0_47_grp";
+			function = "sdio0_cd";
+		};
+
+		conf {
+			slew-rate = <SLEW_RATE_SLOW>;
+			bias-disable;
+			power-source = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	/* GEM0 - See UG585 Table 16-10 for GEM and MDIO MIO pin assignments */
+	pinctrl_ethernet0_default: ethernet0_default {
+
+		mux {
+			groups = "ethernet0_0_grp";
+			function = "ethernet0";
+		};
+
+	};
+
+	pinctrl_mdio0_default: mdio0_default {
+
+		mux {
+			groups = "mdio0_0_grp";
+			function = "mdio0";
+		};
+	};
 };
 
 &uart0 {
-	/* UART0 in the PS is available during all boot phase */
 	bootph-all;
 	status = "okay";
 	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart0_default>;
 };
 
+&sdhci0 {
+	bootph-all;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sdhci0_pins_default &pinctrl_sdhci0_cd_default>;
+};
+
+&gem0 {
+	status = "okay";
+	pinctrl-names = "default"
+	pinctrl-0 = <&pinctrl_ethernet0_default &pinctrl_mdio0_default>
+
+};
 

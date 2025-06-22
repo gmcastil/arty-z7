@@ -1,0 +1,252 @@
+/*
+ * Top level QEMU device tree for Zynq 7000-based board
+ */
+
+/dts-v1/;
+/ {
+	model = "Zynq 7000 QEMU Development Platform";
+	compatible = "xlnx,zynq-7000";
+
+};
+
+/* Verified in the pinctrl-zynq.c driver source code */
+#define SLEW_RATE_SLOW 0
+#define SLEW_RATE_FAST 1
+
+/* From include/dt-bindings/pinctrl/pinctrl-zynq.h */
+#define IO_STANDARD_LVCMOS18	1
+#define IO_STANDARD_LVCMOS25	2
+#define IO_STANDARD_LVCMOS33	3
+#define IO_STANDARD_HSTL	4
+
+/* From linux-xlnx/arch/arm/boot/dts/xilinx/ fork */
+#include "zynq-7000.dtsi"
+/* Kernel bindings */
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/* 
+ * Fix some warnings in the Zynq 7000 default configuration for
+ * components advertising themsleves as interrupt controllers
+ */
+&intc {
+	#address-cells = <0>;
+	#size-cells = <0>;
+};
+
+&gpio0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+};
+
+/* Configure the MIO - probably the most sanguine comment ever made. */
+&pinctrl0 {
+
+	/* UART0 - See UG585 Table 19-4 for MIO pin assignments */
+	pinctrl_uart0_default: uart0_default {
+		/* Groups and MIO pins are found in drivers/pinctrl/pinctrl-zynq.c */
+		mux {
+			groups = "uart0_1_grp";
+			function = "uart0";
+		};
+		conf {
+			groups = "uart0_1_grp";
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+		conf-rx {
+			pins = "MIO14";
+			/* RX pin is actively listening */
+			bias-high-impedance;
+		};
+		conf-tx {
+			pins = "MIO15";
+			/* TX pin is being driven, so disable all pull up/down */
+			bias-disable;
+		};
+	};
+
+	/* SDIO0 - See UG585 Table 13-1 for MIO pin assignments */
+	pinctrl_sdhci0_pins_default: sdhci0_pins_default {
+		/*
+		* The SDHI interface is split into two groups, one for data, command and
+		* clock, the second for the card detect (CD) signal. The Arty does not use
+		* the WC or PC pins.
+		*/
+		mux {
+			groups = "sdio0_2_grp";
+			function = "sdio0";
+		};
+		conf {
+			/* SDIO spec requires pullups and the board doesn't have any */
+			bias-pullup;
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+	};
+
+	pinctrl_sdhci0_cd_default: sdhci0_cd_default {
+		/* Per UG585, the card detect (CD) pin can be attached to any pin except
+		 * MIO 7 and 8. MIO
+		 */
+		mux {
+			groups = "gpio0_47_grp";
+			function = "sdio0_cd";
+		};
+		conf {
+			/* SD card detect is pulled up to 1.8V on the board */
+			bias-disable;
+			power-source = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	/* GEM0 - See UG585 Table 16-10 for GEM and MDIO MIO pin assignments */
+	pinctrl_ethernet0_pins_default: ethernet0_pins_default {
+		mux {
+			groups = "ethernet0_0_grp";
+			function = "ethernet0";
+		};
+		conf {
+			groups = "ethernet0_0_grp";
+			/* Data lines from the controller to the PHY actively driven */
+			bias-disable;
+			power-source = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_ethernet0_mdio_default: ethernet0_mdio_default {
+		mux {
+			/* MDIO and MDC pins */
+			groups = "mdio0_0_grp";
+			function = "mdio0";
+		};
+		conf {
+			groups = "mdio0_0_grp";
+			/* 
+			 * PHY MDIO is pulled up on the board. MDC is push /pull and does not
+			 * need internal bias
+			 */
+			bias-disable;
+			power-source = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+
+	pinctrl_ethernet0_reset_default: ethernet0_reset_default {
+		mux {
+			groups = "gpio0_9_grp";
+			function = "gpio0";
+		};
+		conf {
+			groups = "gpio0_9_grp";
+			/* PHY reset is pulled up on the board */
+			bias-disable;
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+	};
+
+	pinctrl_ethernet0_irq_default: ethernet0_irq_default {
+		mux {
+			groups = "gpio0_10_grp";
+			function = "gpio0";
+		};
+		conf {
+			groups = "gpio0_10_grp";
+			/* PHY IRQB is open drain and not pulled up on the board */
+			bias-pullup;
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+	};
+
+	pinctrl_ck_reset_default: ck_reset_default {
+		mux {
+			groups = "gpio0_12_grp";
+			function = "gpio0";
+		};
+		conf {
+			groups = "gpio0_12_grp";
+			/* CK_RST pulled up on the board */
+			bias-disable;
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+	};
+
+	pinctrl_usbhost_oc_default: usbhost_oc_default {
+		mux {
+			groups = "gpio0_11_grp";
+			function = "gpio0";
+		};
+		conf {
+			groups = "gpio_0_11_grp";
+			/* TODO Need to figure out how this needs to get confiured */
+			power-source = <IO_STANDARD_LVCMOS33>;
+		};
+	};
+
+	pinctrl_usbhost_reset_default: usbhost_reset_default {
+		mux {
+			groups = "gpio_0_46_grp";
+			function = "gpio0";
+		};
+		conf {
+			groups = "gpio_0_46_grp";
+			/* TODO Need to figure out how this needs to get confiured */
+			power-source = <IO_STANDARD_LVCMOS18>;
+		};
+	};
+};
+
+&gpio0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ethernet0_reset_default>, <&pinctrl_ethernet0_irq_default>;
+};
+
+&uart0 {
+	bootph-all;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart0_default>;
+};
+
+&sdhci0 {
+	bootph-all;
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_sdhci0_pins_default>, <&pinctrl_sdhci0_cd_default>;
+};
+
+&gem0 {
+	status = "okay";
+	/* This might be incorrect based upon my reading of the datasheet. In *
+	* particulat, the TXDELAY that is added via strap resistors on the board
+	* might not be accurate.
+	*/
+	phy-mode = "rgmii-id";
+	phy-handle = <&phy0>;
+	managed = "auto";
+
+	/*
+	 * The baseline Zynq 7000 configuration defines these, which are
+	 * unnecessary and misleading in this application
+	*/
+	/delete-property/ #address-cells;
+	/delete-property/ #size-cells;
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		/* Per the schematic, MDIO address is 00001 */
+		phy0: ethernet-phy@1 {
+			/* See PHYID1 and PHYID2 in the datasheet */
+			compatible = "ethernet-phy-id001c.c915";
+			reg = <1>;
+			interrupt-parent = <&gpio0>;
+			/* Per datasheet, PHY interrupt is active low */
+			interrupts = <10 IRQ_TYPE_EDGE_FALLING>;
+			max-speed = <1000>;
+			reset-names = "phy";
+			reset-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+			rx-internal-delay-ps = <2>;
+			tx-internal-delay-ps = <2>;
+		};
+	};
+};

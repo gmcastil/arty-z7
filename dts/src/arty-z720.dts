@@ -1,28 +1,38 @@
 /*
- * Top level QEMU device tree for Zynq 7000-based board
+ * Top level device tree for Digilent Arty Z7-20
  */
 
 /dts-v1/;
-/ {
-	model = "Zynq 7000 QEMU Development Platform";
-	compatible = "xlnx,zynq-7000";
-
-};
-
-/* Verified in the pinctrl-zynq.c driver source code */
-#define SLEW_RATE_SLOW 0
-#define SLEW_RATE_FAST 1
-
-/* From include/dt-bindings/pinctrl/pinctrl-zynq.h */
-#define IO_STANDARD_LVCMOS18	1
-#define IO_STANDARD_LVCMOS25	2
-#define IO_STANDARD_LVCMOS33	3
-#define IO_STANDARD_HSTL	4
-
 /* From linux-xlnx/arch/arm/boot/dts/xilinx/ fork */
 #include "zynq-7000.dtsi"
 
-/* Configure the MIO - probably the most sanguine comment ever made. */
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/* Missing slew rate settings need to be moved into this header */
+#define SLEW_RATE_SLOW 0
+#define SLEW_RATE_FAST 1
+#include <dt-bindings/pinctrl/pinctrl-zynq.h>
+
+/ {
+	model = "Digilent Arty Z7 board";
+	compatible = "xlnx,zynq-7000";
+};
+
+/* 
+ * Fix some warnings in the Zynq 7000 default configuration for
+ * components advertising themsleves as interrupt controllers
+ */
+&intc {
+	#address-cells = <0>;
+	#size-cells = <0>;
+};
+
+&gpio0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+};
+
 &pinctrl0 {
 
 	/* UART0 - See UG585 Table 19-4 for MIO pin assignments */
@@ -196,42 +206,37 @@
 	pinctrl-0 = <&pinctrl_sdhci0_pins_default>, <&pinctrl_sdhci0_cd_default>;
 };
 
-/* 
- * Fix some warnings in the Zynq 7000 default configuration for
- * components advertising themsleves as interrupt controllers
- */
-&intc {
-	#address-cells = <0>;
-	#size-cells = <0>;
-};
-
-&gpio0 {
-	#address-cells = <1>;
-	#size-cells = <0>;
-};
-
-/* &gem0 { */
-	/* status = "okay"; */
-	/* pinctrl-names = "default"; */
-	/* pinctrl-0 = <&pinctrl_ethernet0_pins_default>, <&pinctrl_ethernet0_pins_default>; */
-	/* managed = "auto"; */
-	/* This might be incorrect based upon my reading of the datasheet. In
-	 * particulat, the TXDELAY that is added via strap resistors on the board might not be accurate
+&gem0 {
+	status = "okay";
+	/* This might be incorrect based upon my reading of the datasheet. In *
+	* particulat, the TXDELAY that is added via strap resistors on the board
+	* might not be accurate.
+	*/
+	phy-mode = "rgmii-id";
+	phy-handle = <&phy0>;
+	managed = "auto";
+	/* Baseline device tree misleadingly defines these and causes warnings
+	 * in this application
 	 */
-	/* phy-mode = "rgmii"; */
-	/* phy-handle = <&phy0>; */
+	/delete-property/ #address-cells;
+	/delete-property/ #size-cells;
 
-	/* mdio { */
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
 
 		/* Per the schematic, MDIO address is 00001 */
-		/* phy0: ethernet-phy@1 { */
-			/* reset-gpios = <& */
-		/* }; */
-
-	/* }; */
-
-	 /*
-	  * The PHY reset pin (active low) is driven by MIO 9 in bank 500
-	  * and gets pulled up to 3.3V on the board
-	  */
-/* }; */
+		phy0: ethernet-phy@1 {
+			/* See PHYID1 and PHYID2 in the datasheet */
+			compatible = "ethernet-phy-id001c.c915";
+			reg = <1>;
+			interrupt-parent = <&gpio0>;
+			interrupts = <10 IRQ_TYPE_EDGE_FALLING>;
+			max-speed = <1000>;
+			reset-names = "phy";
+			reset-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
+			rx-internal-delay-ps = <2>;
+			tx-internal-delay-ps = <2>;
+		};
+	};
+};

@@ -57,6 +57,8 @@ $(BUILD_DIR):
 	$(MKDIR) -p $@
 
 # -- Utility targets --
+help: dtb-help kernel-help initramfs-help
+
 clean: kernel-clean initramfs-clean
 	$(RM) -rf $(BUILD_DIR)
 	$(RM) -rf $(STAGING_DIR)

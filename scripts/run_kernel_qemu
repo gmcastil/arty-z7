@@ -67,5 +67,6 @@ check_boot_files "${dtb_path}" "${kernel_path}" "${initrd_path}" || \
     -kernel "${kernel_path}" \
     -append "${kernel_cmd_line}" \
     -net nic -net user,hostfwd=udp::6666-:6666 \
+    -sd sd.img \
     -m 2048M
 

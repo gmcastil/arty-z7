@@ -215,18 +215,14 @@
 
 &gem0 {
 	status = "okay";
-	/* This might be incorrect based upon my reading of the datasheet. In *
-	* particulat, the TXDELAY that is added via strap resistors on the board
-	* might not be accurate.
-	*/
 	phy-mode = "rgmii-id";
 	phy-handle = <&phy0>;
-	managed = "auto";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ethernet0_pins_default>;
+	/* These are possibly vestigial properties but they work in QEMU */
+	phy-reset-gpio = <&gpio0 9 0>;
+	phy-reset-active-low;
 
-	/*
-	 * The baseline Zynq 7000 configuration defines these, which are
-	 * unnecessary and misleading in this application
-	*/
 	/delete-property/ #address-cells;
 	/delete-property/ #size-cells;
 
@@ -234,19 +230,55 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		/* Per the schematic, MDIO address is 00001 */
-		phy0: ethernet-phy@1 {
-			/* See PHYID1 and PHYID2 in the datasheet */
-			compatible = "ethernet-phy-id001c.c915";
-			reg = <1>;
-			interrupt-parent = <&gpio0>;
-			/* Per datasheet, PHY interrupt is active low */
-			interrupts = <10 IRQ_TYPE_EDGE_FALLING>;
-			max-speed = <1000>;
-			reset-names = "phy";
-			reset-gpios = <&gpio0 9 GPIO_ACTIVE_LOW>;
-			rx-internal-delay-ps = <2>;
-			tx-internal-delay-ps = <2>;
+		phy0: ethernet-phy@7 {
+			reg = <7>;
 		};
 	};
 };
+
+&qspi {
+	status = "okay";
+
+	flash@0 {
+		/* 
+		 * Micron N25Q128A13 responds to READ ID 0x9F - see section 11.2.2
+		 * and does not need a specific compatible string
+		 */
+		compatible = "jedec,spi-nor";
+		/* Corresponds to CS0 and possibly irrelevant in this case */
+		reg = <0>;
+		/* 
+		 * The max freq on the datasheet is 103MHz, but unclear what mode to use.
+		 * There may also be a limitation of the clock rate based on the fact
+		 * that it uses the STARTUPE2 primitive or something like that
+		 */
+		spi-max-frequency = <50000000>;	
+		spi-rx-bus-width = <4>;
+		spi-tx-bus-width = <4>;
+	};
+};
+
+/* 
+ * The SPI0 and SPI1 buses require use of the EMIO. Also note that there
+ * is no dedicated chip select on the board and it is expected that a PL
+ * GPIO will be manually assigned as a SPI CS. This is just enabled to
+ * see if the driver probes.
+ */
+&spi0 {
+	status = "okay";
+	num-cs = <4>;
+
+	/* Add a dummy SPI device here so entries in /sys/bus/spi will get created */
+	spidev@0 {
+		compatible = "spidev";
+		reg = <0>;
+		spi-max-frequency = <1000000>;
+	};
+};
+/*
+ * Same story with the I2C interface as well - these use the EMIO on the Arty
+ */
+&i2c0 {
+	status = "okay";
+};
+

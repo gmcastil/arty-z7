@@ -5,12 +5,13 @@ VIVADO_PROJ_DIR		:= $(BUILD_DIR)/vivado
 VIVADO_TCLARGS		:= $(VIVADO_PROJ_NAME) $(VIVADO_PROJ_DIR) $(NPROC)
 VIVADO_SOURCE_TCL	:= $(SCRIPTS_DIR)/build-vivado-proj.tcl
 VIVADO_PRESETS		:= $(REPO_DIR)/presets/$(VIVADO_PROJ_NAME).tcl
+VIVADO_XSA		:= $(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa
 
 .PHONY: vivado-help vivado-build vivado-clean
 
-vivado-build: $(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa
+vivado-build: $(VIVADO_XSA)
 
-$(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa: $(VIVADO_SOURCE_TCL) $(VIVADO_PRESETS)
+$(VIVADO_XSA): $(VIVADO_SOURCE_TCL) $(VIVADO_PRESETS)
 	mkdir -pv $(VIVADO_PROJ_DIR)
 	# Change to the project directory to avoid random Vivado droppings littering the repo
 	cd $(VIVADO_PROJ_DIR) && $(VIVADO) -mode batch \
@@ -22,7 +23,7 @@ $(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa: $(VIVADO_SOURCE_TCL) $(VIVADO_PRESET
 
 vivado-help:
 	@$(PRINTF) '%s\n' "Vivado project targets:"
-	@$(call print_help_entry,"vivado-build","Build Vivado project (overwrites existing)")
+	@$(call print_help_entry,"vivado-build","Build Vivado project and overwrites if needed")
 	@$(call print_help_entry,"vivado-clean","Removes Vivado build directory")
 
 vivado-clean:

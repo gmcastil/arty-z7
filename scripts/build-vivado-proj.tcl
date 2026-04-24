@@ -3,7 +3,7 @@ proc log_err {msg} {
 }
 
 proc usage {} {
-    puts "Usage: vivado -mode back -source build-vivado-proj.tcl -tclargs <proj_name> <proj_dir> <jobs>"
+    puts "Usage: vivado -mode batch -source build-vivado-proj.tcl -tclargs <proj_name> <proj_dir> <jobs>"
 }
 
 if {[llength $argv] != 3} {

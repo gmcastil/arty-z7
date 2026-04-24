@@ -1,5 +1,1 @@
-# Build and source directories
-build/
-extern/
-rootfs/
-initramfs.cpio.gz
+

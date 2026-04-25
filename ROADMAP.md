@@ -63,16 +63,24 @@ Status: COMPLETE
 
 Goal: build u-boot for Arty Z7-20 and develop a working DTS.
 
-- [ ] Build u-boot using Zybo Z7-20 as reference starting point
+- [x] Build u-boot using Zybo Z7-20 as reference starting point
 - [ ] Develop Arty Z7-20 DTS (diff from Zybo: pin mux, DDR params, peripherals)
 - [ ] Validate boot flow under QEMU
 - [ ] Iterate DTS until u-boot boots cleanly
 
 Notes:
 - Use QEMU as primary development target until hardware bring-up stage
-- Zybo Z7-20 DTS lives in board/xilinx/zynq/ in u-boot tree
+- Zybo Z7-20 DTS: arch/arm/dts/zynq-zybo-z7.dts - use as template for Arty DTS
+- DTS filename: zynq-arty-z7.dts
+- ps-clk-frequency differs: Arty uses 125MHz vs Zybo 33MHz
+- DDR size same as Zybo Z7: 0x40000000 (1GB)
+- xilinx_zynq_virt_defconfig is the base - no separate Arty defconfig needed
+- ps7_init_gpl.c goes in board/xilinx/zynq/ - already generated from Stage 1/2
+- Patch series: zynq-arty-z7.dts, arch/arm/dts/Makefile entry, ps7_init_gpl.c, Kconfig entry
+- u-boot cloned from Denx at v2026.04 tag, branched to arty-z7-dts in extern/u-boot/
+- Build system: uboot.mk wired up, builds ELF + DTB separately (OF_SEPARATE=y)
 
-Status: NOT STARTED
+Status: IN PROGRESS
 
 ---
 

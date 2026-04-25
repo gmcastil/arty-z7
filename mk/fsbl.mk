@@ -5,7 +5,6 @@ FSBL_SRC_GENERATE_STAMP		:= $(FSBL_SRC_GENERATE_DIR)/.stamp_fsbl_src_generated
 # And then we copy it from the generated directory to the build directory since
 # the FSBL source does not support out-of-tree builds
 FSBL_SRC_DIR			:= $(BUILD_DIR)/zynq_fsbl
-FSBL_HW_EXPORT_DIR		:= $(BUILD_DIR)/hw_export
 FSBL_SRC_COPIED_STAMP		:= $(FSBL_SRC_DIR)/.stamp_fsbl_src_copied
 FSBL_ELF_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_fsbl_elf_staged
 
@@ -33,7 +32,7 @@ $(FSBL_SRC_GENERATE_STAMP): $(FSBL_SRC_GENERATE_TCL) $(VIVADO_XSA)
 	mkdir -pv $(BUILD_DIR)
 	mkdir -pv $(EXTERN_DIR)
 	$(XSCT) -eval "source $(FSBL_SRC_GENERATE_TCL); \
-		generate_fsbl {$(VIVADO_XSA)} {$(FSBL_HW_EXPORT_DIR)} {$(FSBL_SRC_GENERATE_DIR)}"
+		generate_fsbl {$(VIVADO_XSA)} {$(HW_EXPORT_DIR)} {$(FSBL_SRC_GENERATE_DIR)}"
 	touch $@
 
 fsbl-help:
@@ -46,7 +45,7 @@ fsbl-help:
 
 fsbl-clean:
 	rm -rf $(FSBL_SRC_DIR)
-	rm -rf $(FSBL_HW_EXPORT_DIR)
+	rm -rf $(HW_EXPORT_DIR)
 	rm -f $(FSBL_ELF_STAGED_STAMP)
 	rm -f $(STAGING_DIR)/$(FSBL_ELF)
 

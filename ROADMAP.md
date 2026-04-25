@@ -16,10 +16,10 @@ support in both u-boot and kernel).
 Goal: automated Tcl script to generate a minimal Arty Z7-20 block design
 suitable for deriving a DTS.
 
-- [ ] Write Tcl script to create block design with PS7 instance
-- [ ] Integrate existing PS7 configuration presets
-- [ ] Validate block design generates a clean XSA export
-- [ ] Commit script to repo under scripts/
+- [x] Write Tcl script to create block design with PS7 instance
+- [x] Integrate existing PS7 configuration presets
+- [x] Validate block design generates a clean XSA export
+- [x] Commit script to repo under scripts/
 
 Notes:
 - Block design is required (PS7 configuration presets live there)
@@ -32,7 +32,7 @@ Notes:
 - All generated artifacts (Vivado project, XSA) land in build/, gitignored
 - XSA is not revision controlled
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 ---
 
@@ -41,11 +41,11 @@ Status: IN PROGRESS
 Goal: automated FSBL build from Xilinx embeddedsw source with a hand-written
 linker script.
 
-- [ ] Check out FSBL source from embeddedsw (github.com/Xilinx/embeddedsw)
-- [ ] Write custom linker script for OCM placement (256KB, pre-DDR init)
-- [ ] Learn ELF structure and linker script mechanics (deliberate diversion)
-- [ ] Automate build, output FSBL ELF
-- [ ] Commit build scripts and linker script to repo
+- [x] Check out FSBL source from embeddedsw (github.com/Xilinx/embeddedsw)
+- [x] Write custom linker script for OCM placement (256KB, pre-DDR init)
+- [x] Learn ELF structure and linker script mechanics (deliberate diversion)
+- [x] Automate build, output FSBL ELF
+- [x] Commit build scripts and linker script to repo
 
 Notes:
 - Linker script is new territory - the point is to understand it, not steal
@@ -55,7 +55,7 @@ Notes:
 - embeddedsw path preferred over Vitis-generated source for cleaner version
   control
 
-Status: NOT STARTED
+Status: COMPLETE
 
 ---
 
@@ -169,4 +169,4 @@ Status: NOT STARTED
 
 ## Current Focus
 
-Stage 1 - Vivado Base Project
+Stage 3 - U-Boot

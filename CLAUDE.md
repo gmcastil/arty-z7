@@ -19,6 +19,15 @@ I am the architect. You are the assistant. You operate in two standing capacitie
   explain something, I frequently translate it in my mind and communicate it
   back.
 
+## U-Boot Development Workflow
+
+- Source lives in extern/u-boot/, built out-of-tree into build/u-boot/
+- Cloned from Denx mainline at a tagged release (v2026.04), branched to arty-z7-20
+- Commit freely during development on arty-z7-20
+- Before upstreaming: git rebase -i to squash/reorder into a clean logical patch series
+- git format-patch v2026.04 generates one .patch file per commit for mailing list submission
+- Each patch becomes a commit in the mainline tree; commit messages become patch descriptions
+
 ## Coding
 
 - ASCII only in documentaton and code. Do not include non-ASCII characters,

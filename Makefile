@@ -23,13 +23,16 @@ help:
 	@$(MAKE) --no-print-directory vivado-help
 	@$(PRINTF) '\n'
 	@$(MAKE) --no-print-directory fsbl-help
+	@$(PRINTF) '\n'
+	@$(MAKE) --no-print-directory uboot-help
 
 include $(REPO_DIR)/mk/config.mk
 include $(REPO_DIR)/mk/functions.mk
 include $(REPO_DIR)/mk/vivado.mk
 include $(REPO_DIR)/mk/fsbl.mk
+include $(REPO_DIR)/mk/uboot.mk
 
-fetch-extern: fsbl-fetch
+fetch-extern: uboot-fetch
 
 clean:
 	@$(MAKE) vivado-clean

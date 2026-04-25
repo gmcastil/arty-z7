@@ -42,7 +42,7 @@ fsbl-help:
 	@$(call print_help_entry,"fsbl-build","Build FSBL ELF")
 	@$(call print_help_entry,"fsbl-generate","Exports FSBL source from a given XSA file")
 	@$(call print_help_entry,"fsbl-clean","Removes FSBL build artifacts")
-	@$(call print_help_entry,"fsbl-distclean","Removes FSBL source directory")
+	@$(call print_help_entry,"fsbl-distclean","Removes all FSBL components")
 
 fsbl-clean:
 	rm -rf $(FSBL_SRC_DIR)

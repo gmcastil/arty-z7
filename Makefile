@@ -8,11 +8,13 @@ BUILD_DIR		:= $(REPO_DIR)/build
 EXTERN_DIR		:= $(REPO_DIR)/extern
 
 STAGING_DIR		:= $(BUILD_DIR)/staging
+HW_EXPORT_DIR		:= $(BUILD_DIR)/hw_export
 
 # Uncommon or overridden commands
 PRINTF			:= builtin printf
 VIVADO			:= vivado
 XSCT			:= xsct
+QEMU			:= qemu-system-aarch64
 
 .PHONY: help
 help:
@@ -31,6 +33,7 @@ include $(REPO_DIR)/mk/functions.mk
 include $(REPO_DIR)/mk/vivado.mk
 include $(REPO_DIR)/mk/fsbl.mk
 include $(REPO_DIR)/mk/uboot.mk
+include $(REPO_DIR)/mk/qemu.mk
 
 fetch-extern: uboot-fetch
 

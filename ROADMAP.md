@@ -64,21 +64,24 @@ Status: COMPLETE
 Goal: build u-boot for Arty Z7-20 and develop a working DTS.
 
 - [x] Build u-boot using Zybo Z7-20 as reference starting point
-- [ ] Develop Arty Z7-20 DTS (diff from Zybo: pin mux, DDR params, peripherals)
-- [ ] Validate boot flow under QEMU
-- [ ] Iterate DTS until u-boot boots cleanly
+- [x] Develop Arty Z7-20 DTS (UART, clock, memory, Ethernet, QSPI, MMC, USB)
+- [x] Validate boot flow under QEMU
+- [x] Iterate DTS until u-boot boots cleanly
+- [ ] Add ps7_init_gpl.c to board/xilinx/zynq/ and stage from XSA
 
 Notes:
 - Use QEMU as primary development target until hardware bring-up stage
 - Zybo Z7-20 DTS: arch/arm/dts/zynq-zybo-z7.dts - use as template for Arty DTS
 - DTS filename: zynq-arty-z7.dts
-- ps-clk-frequency differs: Arty uses 125MHz vs Zybo 33MHz
-- DDR size same as Zybo Z7: 0x40000000 (1GB)
+- ps-clk-frequency: Arty uses 125MHz, Zybo Z7 uses 33MHz
+- DDR size: Arty Z7 has 512MB (0x20000000), Zybo Z7 has 1GB (0x40000000)
+- No Kconfig entry needed - Arty hangs off existing CONFIG_ARCH_ZYNQ block
 - xilinx_zynq_virt_defconfig is the base - no separate Arty defconfig needed
-- ps7_init_gpl.c goes in board/xilinx/zynq/ - already generated from Stage 1/2
-- Patch series: zynq-arty-z7.dts, arch/arm/dts/Makefile entry, ps7_init_gpl.c, Kconfig entry
+- ps7_init_gpl.c goes in board/xilinx/zynq/ - extract from XSA in vivado.mk staging step
+- Patch series: zynq-arty-z7.dts, arch/arm/dts/Makefile entry, ps7_init_gpl.c
 - u-boot cloned from Denx at v2026.04 tag, branched to arty-z7-dts in extern/u-boot/
 - Build system: uboot.mk wired up, builds ELF + DTB separately (OF_SEPARATE=y)
+- Upstream bugs found: zynq-zybo-z7.dts PHY reg may be wrong (addr 0 vs 1), zynq-dlc20 dr_mode "device" should be "peripheral"
 
 Status: IN PROGRESS
 

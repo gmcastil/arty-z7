@@ -9,6 +9,11 @@ VIVADO_XSA		:= $(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa
 
 .PHONY: vivado-help vivado-build vivado-clean
 
+vivado-stage: $(VIVADO_STAGED_STAMP)
+
+$(VIVADO_STAGED_STAMP): $(VIVADO_XSA)
+	unzip $(VIVADO_XSA) $(HW_EXPORT_DIR)
+
 vivado-build: $(VIVADO_XSA)
 
 $(VIVADO_XSA): $(VIVADO_SOURCE_TCL) $(VIVADO_PRESETS)
@@ -23,6 +28,7 @@ $(VIVADO_XSA): $(VIVADO_SOURCE_TCL) $(VIVADO_PRESETS)
 
 vivado-help:
 	@$(PRINTF) '%s\n' "Vivado project targets:"
+	@$(call print_help_entry,"vivado-stage","Stage bitstream and FSBL configuration source")
 	@$(call print_help_entry,"vivado-build","Build Vivado project and overwrites if needed")
 	@$(call print_help_entry,"vivado-clean","Removes Vivado build directory")
 

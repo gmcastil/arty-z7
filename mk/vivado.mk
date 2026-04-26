@@ -6,13 +6,17 @@ VIVADO_TCLARGS		:= $(VIVADO_PROJ_NAME) $(VIVADO_PROJ_DIR) $(NPROC)
 VIVADO_SOURCE_TCL	:= $(SCRIPTS_DIR)/build-vivado-proj.tcl
 VIVADO_PRESETS		:= $(REPO_DIR)/presets/$(VIVADO_PROJ_NAME).tcl
 VIVADO_XSA		:= $(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa
+VIVADO_STAGED_STAMP	:= $(STAGING_DIR)/.stamp_vivado_staged
 
-.PHONY: vivado-help vivado-build vivado-clean
+.PHONY: vivado-stage vivado-build vivado-help vivado-clean
 
 vivado-stage: $(VIVADO_STAGED_STAMP)
 
 $(VIVADO_STAGED_STAMP): $(VIVADO_XSA)
-	unzip $(VIVADO_XSA) $(HW_EXPORT_DIR)
+	mkdir -pv $(STAGING_DIR)
+	unzip -j $(VIVADO_XSA) $(VIVADO_PROJ_NAME).bit -d $(STAGING_DIR)
+	unzip -j $(VIVADO_XSA) ps7_init_gpl.c -d $(STAGING_DIR)
+	touch $@
 
 vivado-build: $(VIVADO_XSA)
 
@@ -34,3 +38,7 @@ vivado-help:
 
 vivado-clean:
 	rm -rf $(VIVADO_PROJ_DIR)
+	rm -f $(VIVADO_STAGED_STAMP)
+	rm -f $(STAGING_DIR)/$(VIVADO_PROJ_NAME).bit
+	rm -f $(STAGING_DIR)/ps7_init_gpl.c
+

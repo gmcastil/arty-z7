@@ -1,3 +1,5 @@
+.PHONY: boot-stage boot-help boot-clean
+
 boot-stage: $(STAGING_DIR)/BOOT.BIN
 
 $(STAGING_DIR)/BOOT.BIN: $(STAGING_DIR)/$(BOOT_BIF) $(FSBL_STAGED_STAMP) $(UBOOT_STAGED_STAMP) $(VIVADO_STAGED_STAMP)

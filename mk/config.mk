@@ -22,7 +22,7 @@ UBOOT_DEVICE_TREE	:= zynq-arty-z7
 UBOOT_ELF		:= u-boot.elf
 
 # QEMU settings
-QEMU_MACHINE_TYPE	:=xilinx-zynq-a9
+QEMU_MACHINE_TYPE	:= xilinx-zynq-a9
 
 # Bootgen specific settings
 PLATFORM		:= zynq

@@ -76,6 +76,7 @@ $(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/$(LINUX_IMAGE): $(LINUX_CONFIG_STAMP)
 linux-defconfig: $(LINUX_CONFIG_STAMP)
 
 $(LINUX_CONFIG_STAMP): $(LINUX_SRC_BRANCHED_STAMP)
+	mkdir -pv $(LINUX_BUILD_DIR)
 	$(MAKE) -C $(LINUX_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
 		O=$(LINUX_BUILD_DIR) mrproper
 	$(MAKE) -C $(LINUX_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
@@ -110,7 +111,6 @@ linux-help:
 	@$(call print_help_entry,"linux-menuconfig","Runs the kernel menuconfig")
 	@$(call print_help_entry,"linux-fetch","Clones and branches kernel sources")
 	@$(call print_help_entry,"linux-clean","Removes kernel build artifacts")
-	@$(call print_help_entry,"linux-distclean","Removes all kernel components")
 
 linux-clean:
 	rm -rf $(LINUX_BUILD_DIR)
@@ -119,7 +119,4 @@ linux-clean:
 	rm -f $(LINUX_STAGED_STAMP)
 	rm -rf $(ROOTFS_DIR)/lib/modules/$(LINUX_RELEASE)
 	@$(PRINTF) '%s\n' "NOTE: Kernel headers may be left behind in $(ROOTFS_DIR)/usr/include"
-
-linux-distclean: linux-clean
-	rm -rf $(LINUX_SRC_DIR)
 

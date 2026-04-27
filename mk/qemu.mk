@@ -1,4 +1,4 @@
-.PHONY: qemu-uboot
+.PHONY: qemu-uboot qemu-help
 
 qemu-uboot: $(UBOOT_STAGED_STAMP)
 	$(QEMU) \

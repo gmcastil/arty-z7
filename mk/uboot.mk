@@ -83,6 +83,3 @@ uboot-clean:
 	rm -f $(UBOOT_STAGED_STAMP)
 	rm -f $(UBOOT_SRC_DIR)/compile_commands.json
 
-uboot-distclean: uboot-clean
-	rm -rf $(UBOOT_SRC_DIR)
-

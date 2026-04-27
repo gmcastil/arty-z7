@@ -16,3 +16,4 @@ boot-clean:
 	rm -f $(STAGING_DIR)/$(BOOT_BIF)
 	rm -f $(STAGING_DIR)/BOOT.BIN
 	rm -f $(STAGING_DIR)/BOOT.MD5
+	rm -f $(STAGING_DIR)/bootgen_log.txt

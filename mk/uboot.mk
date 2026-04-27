@@ -1,21 +1,10 @@
-UBOOT_SRC_DIR			:= $(EXTERN_DIR)/u-boot
-# We perform out of tree builds for u-boot
-UBOOT_BUILD_DIR			:= $(BUILD_DIR)/u-boot
-# Source tree wsa cloned to extern/
-UBOOT_SRC_CLONED_STAMP		:= $(UBOOT_SRC_DIR)/.stamp_uboot_src_cloned
-# Source tree was branched for hacking
-UBOOT_SRC_BRANCHED_STAMP	:= $(UBOOT_SRC_DIR)/.stamp_uboot_src_branched
-# Configuration was changed
-UBOOT_CONFIG_STAMP		:= $(UBOOT_BUILD_DIR)/.stamp_uboot_src_config
-UBOOT_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_uboot_elf_staged
-
 .PHONY: uboot-rebuild uboot-stage uboot-build uboot-defconfig uboot-menuconfig
 .PHONY: uboot-fetch uboot-help uboot-clean uboot-distclean
 
 # Convenience target to rebuild after modifying U-boot source - forces a rebuild
 # regardless of stamp states
 uboot-rebuild:
-	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
+	$(MAKE) -C $(UBOOT_SRC_DIR) -j$(NPROC) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
 		O=$(UBOOT_BUILD_DIR) DEVICE_TREE=$(UBOOT_DEVICE_TREE)
 	$(UBOOT_SRC_DIR)/scripts/gen_compile_commands.py \
 		-d $(UBOOT_BUILD_DIR) \

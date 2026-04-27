@@ -10,6 +10,7 @@ EXTERN_DIR		:= $(REPO_DIR)/extern
 
 STAGING_DIR		:= $(BUILD_DIR)/staging
 HW_EXPORT_DIR		:= $(BUILD_DIR)/hw_export
+ROOTFS_DIR		:= $(STAGING_DIR)/rootfs
 
 # Uncommon or overridden commands
 PRINTF			:= builtin printf
@@ -38,14 +39,15 @@ help:
 	@$(MAKE) --no-print-directory linux-help
 
 include $(REPO_DIR)/mk/config.mk
+include $(REPO_DIR)/mk/stamps.mk
 include $(REPO_DIR)/mk/functions.mk
 include $(REPO_DIR)/mk/vivado.mk
 include $(REPO_DIR)/mk/fsbl.mk
 include $(REPO_DIR)/mk/uboot.mk
 include $(REPO_DIR)/mk/qemu.mk
 include $(REPO_DIR)/mk/boot.mk
-include $(REPO_DIR)/mk/linux.mk
 include $(REPO_DIR)/mk/rootfs.mk
+include $(REPO_DIR)/mk/linux.mk
 
 fetch-extern: uboot-fetch linux-fetch
 

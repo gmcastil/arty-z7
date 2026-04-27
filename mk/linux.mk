@@ -1,14 +1,3 @@
-LINUX_SRC_DIR			:= $(EXTERN_DIR)/linux
-# We perform out of tree builds for linux
-LINUX_BUILD_DIR			:= $(BUILD_DIR)/linux
-# Source tree was cloned to extern/
-LINUX_SRC_CLONED_STAMP		:= $(LINUX_SRC_DIR)/.stamp_linux_src_cloned
-# Source tree was branched for hacking
-LINUX_SRC_BRANCHED_STAMP	:= $(LINUX_SRC_DIR)/.stamp_linux_src_branched
-# Configuration was changed
-LINUX_CONFIG_STAMP		:= $(LINUX_BUILD_DIR)/.stamp_linux_src_config
-LINUX_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_linux_staged
-
 .PHONY: linux-rebuild linux-release linux-stage linux-build linux-build-dt linux-defconfig
 .PHONY: linux-menuconfig linux-fetch linux-help linux-clean linux-distclean
 
@@ -30,7 +19,9 @@ linux-release:
 
 linux-stage: $(LINUX_STAGED_STAMP)
 
+# We don't stage anything until the rootfs has been created
 $(LINUX_STAGED_STAMP): \
+	$(ROOTFS_STAMP_DONE) \
 	$(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/$(LINUX_IMAGE) \
 	$(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/dts/xilinx/$(LINUX_DEVICE_TREE).dtb
 	mkdir -pv $(ROOTFS_DIR)/lib $(ROOTFS_DIR)/usr

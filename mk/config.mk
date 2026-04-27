@@ -39,4 +39,10 @@ LINUX_DEVICE_TREE	:= zynq-arty-z7
 # Output from running `make kernelrelease` used for fixing up paths
 LINUX_RELEASE		:= 6.18.0
 
-
+# Source and build directories
+FSBL_SRC_GENERATE_DIR	:= $(EXTERN_DIR)/zynq_fsbl
+FSBL_SRC_DIR		:= $(BUILD_DIR)/zynq_fsbl
+UBOOT_SRC_DIR		:= $(EXTERN_DIR)/u-boot
+UBOOT_BUILD_DIR		:= $(BUILD_DIR)/u-boot
+LINUX_SRC_DIR		:= $(EXTERN_DIR)/linux
+LINUX_BUILD_DIR		:= $(BUILD_DIR)/linux

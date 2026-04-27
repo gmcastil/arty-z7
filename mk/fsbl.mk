@@ -1,12 +1,4 @@
-# We generate the source tree using XSCT to here
-FSBL_SRC_GENERATE_DIR		:= $(EXTERN_DIR)/zynq_fsbl
 FSBL_SRC_GENERATE_TCL		:= $(SCRIPTS_DIR)/export-fsbl.tcl
-FSBL_SRC_GENERATE_STAMP		:= $(FSBL_SRC_GENERATE_DIR)/.stamp_fsbl_src_generated
-# And then we copy it from the generated directory to the build directory since
-# the FSBL source does not support out-of-tree builds
-FSBL_SRC_DIR			:= $(BUILD_DIR)/zynq_fsbl
-FSBL_SRC_COPIED_STAMP		:= $(FSBL_SRC_DIR)/.stamp_fsbl_src_copied
-FSBL_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_fsbl_elf_staged
 
 .PHONY: fsbl-stage fsbl-build fsbl-generate fsbl-help fsbl-clean fsbl-distclean
 

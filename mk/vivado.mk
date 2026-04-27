@@ -6,7 +6,6 @@ VIVADO_TCLARGS		:= $(VIVADO_PROJ_NAME) $(VIVADO_PROJ_DIR) $(NPROC)
 VIVADO_SOURCE_TCL	:= $(SCRIPTS_DIR)/build-vivado-proj.tcl
 VIVADO_PRESETS		:= $(REPO_DIR)/presets/$(VIVADO_PROJ_NAME).tcl
 VIVADO_XSA		:= $(VIVADO_PROJ_DIR)/$(VIVADO_PROJ_NAME).xsa
-VIVADO_STAGED_STAMP	:= $(STAGING_DIR)/.stamp_vivado_staged
 
 .PHONY: vivado-stage vivado-build vivado-help vivado-clean
 

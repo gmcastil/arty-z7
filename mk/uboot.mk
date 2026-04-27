@@ -51,7 +51,7 @@ $(UBOOT_CONFIG_STAMP): $(UBOOT_SRC_BRANCHED_STAMP)
 # Optional menuconfig step (have to run defconfig first)
 uboot-menuconfig: $(UBOOT_CONFIG_STAMP)
 	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
-		O=$(UBOOT_BUILD_DIR)
+		O=$(UBOOT_BUILD_DIR) menuconfig
 	touch $(UBOOT_CONFIG_STAMP)
 
 uboot-fetch: $(UBOOT_SRC_BRANCHED_STAMP)

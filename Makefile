@@ -34,6 +34,8 @@ help:
 	@$(MAKE) --no-print-directory qemu-help
 	@$(PRINTF) '\n'
 	@$(MAKE) --no-print-directory boot-help
+	@$(PRINTF) '\n'
+	@$(MAKE) --no-print-directory linux-help
 
 include $(REPO_DIR)/mk/config.mk
 include $(REPO_DIR)/mk/functions.mk
@@ -42,11 +44,13 @@ include $(REPO_DIR)/mk/fsbl.mk
 include $(REPO_DIR)/mk/uboot.mk
 include $(REPO_DIR)/mk/qemu.mk
 include $(REPO_DIR)/mk/boot.mk
+include $(REPO_DIR)/mk/linux.mk
 
-fetch-extern: uboot-fetch
+fetch-extern: uboot-fetch linux-fetch
 
 clean:
 	@$(MAKE) vivado-clean
 	@$(MAKE) fsbl-clean
 	@$(MAKE) uboot-clean
 	@$(MAKE) boot-clean
+	@$(MAKE) linux-clean

@@ -15,7 +15,7 @@ UBOOT_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_uboot_elf_staged
 # Convenience target to rebuild after modifying U-boot source - forces a rebuild
 # regardless of stamp states
 uboot-rebuild:
-	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
 		O=$(UBOOT_BUILD_DIR) DEVICE_TREE=$(UBOOT_DEVICE_TREE)
 	$(UBOOT_SRC_DIR)/scripts/gen_compile_commands.py \
 		-d $(UBOOT_BUILD_DIR) \
@@ -35,7 +35,7 @@ $(UBOOT_STAGED_STAMP): $(UBOOT_BUILD_DIR)/$(UBOOT_ELF)
 uboot-build: $(UBOOT_BUILD_DIR)/$(UBOOT_ELF)
 
 $(UBOOT_BUILD_DIR)/$(UBOOT_ELF): $(UBOOT_CONFIG_STAMP)
-	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
 		O=$(UBOOT_BUILD_DIR) DEVICE_TREE=$(UBOOT_DEVICE_TREE)
 	$(UBOOT_SRC_DIR)/scripts/gen_compile_commands.py \
 		-d $(UBOOT_BUILD_DIR) \
@@ -44,13 +44,13 @@ $(UBOOT_BUILD_DIR)/$(UBOOT_ELF): $(UBOOT_CONFIG_STAMP)
 uboot-defconfig: $(UBOOT_CONFIG_STAMP)
 
 $(UBOOT_CONFIG_STAMP): $(UBOOT_SRC_BRANCHED_STAMP)
-	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
 		O=$(UBOOT_BUILD_DIR) $(UBOOT_DEFCONFIG)
-	touch $(UBOOT_CONFIG_STAMP)
+	touch $@
 
 # Optional menuconfig step (have to run defconfig first)
 uboot-menuconfig: $(UBOOT_CONFIG_STAMP)
-	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) \
+	$(MAKE) -C $(UBOOT_SRC_DIR) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
 		O=$(UBOOT_BUILD_DIR)
 	touch $(UBOOT_CONFIG_STAMP)
 

@@ -45,6 +45,7 @@ include $(REPO_DIR)/mk/uboot.mk
 include $(REPO_DIR)/mk/qemu.mk
 include $(REPO_DIR)/mk/boot.mk
 include $(REPO_DIR)/mk/linux.mk
+include $(REPO_DIR)/mk/rootfs.mk
 
 fetch-extern: uboot-fetch linux-fetch
 

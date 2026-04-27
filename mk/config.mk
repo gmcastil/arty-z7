@@ -28,6 +28,15 @@ QEMU_MACHINE_TYPE	:=xilinx-zynq-a9
 PLATFORM		:= zynq
 BOOT_BIF		:= arty-z7-20.bif
 
-# LINUX_SRC_URL		:=
-# LINUX_SRC_TAG		:=
+LINUX_SRC_URL		:= https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+LINUX_SRC_TAG		:= v6.18
+# Branch that we will create locally for device tree development
+LINUX_DEV_BRANCH	:= arty-z7-dts
+# This is the only defconfig in arch/arm/configs that enables support for Zynq devices
+LINUX_DEFCONFIG		:= multi_v7_defconfig
+LINUX_IMAGE		:= zImage
+LINUX_DEVICE_TREE	:= zynq-arty-z7
+# Output from running `make kernelrelease` used for fixing up paths
+LINUX_RELEASE		:= 6.18.0
+
 

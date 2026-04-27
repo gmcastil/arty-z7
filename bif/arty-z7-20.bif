@@ -1,0 +1,7 @@
+ps7_image_format:
+{
+	[bootloader] fsbl.elf
+	system.bit
+	u-boot.elf
+	[load=0x100000] u-boot.dtb
+}

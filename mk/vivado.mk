@@ -14,7 +14,9 @@ vivado-stage: $(VIVADO_STAGED_STAMP)
 
 $(VIVADO_STAGED_STAMP): $(VIVADO_XSA)
 	mkdir -pv $(STAGING_DIR)
-	unzip -j $(VIVADO_XSA) $(VIVADO_PROJ_NAME).bit -d $(STAGING_DIR)
+	# Extract whatever the bitstream is called in the XSA and name it system.bit so that
+	# the .bif file is able to find it when its time to build the BOOT.BIN
+	unzip -p $(VIVADO_XSA) $(VIVADO_PROJ_NAME).bit > $(STAGING_DIR)/system.bit
 	unzip -j $(VIVADO_XSA) ps7_init_gpl.c -d $(STAGING_DIR)
 	touch $@
 
@@ -39,6 +41,6 @@ vivado-help:
 vivado-clean:
 	rm -rf $(VIVADO_PROJ_DIR)
 	rm -f $(VIVADO_STAGED_STAMP)
-	rm -f $(STAGING_DIR)/$(VIVADO_PROJ_NAME).bit
+	rm -f $(STAGING_DIR)/system.bit
 	rm -f $(STAGING_DIR)/ps7_init_gpl.c
 

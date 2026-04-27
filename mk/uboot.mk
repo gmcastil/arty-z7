@@ -25,9 +25,11 @@ uboot-stage: $(UBOOT_STAGED_STAMP)
 
 $(UBOOT_STAGED_STAMP): $(UBOOT_BUILD_DIR)/$(UBOOT_ELF)
 	install -D -m 644 $< $(STAGING_DIR)/$(UBOOT_ELF)
+	# Copy the device tree to the staging directory, but rename it so that the
+	# .bif file can always reference it when building the BOOT.BIN
 	install -D -m 644 \
 		$(UBOOT_BUILD_DIR)/arch/$(ARCH)/dts/$(UBOOT_DEVICE_TREE).dtb \
-		$(STAGING_DIR)/$(UBOOT_DEVICE_TREE).dtb
+		$(STAGING_DIR)/u-boot.dtb
 	touch $@
 
 uboot-build: $(UBOOT_BUILD_DIR)/$(UBOOT_ELF)
@@ -65,7 +67,7 @@ $(UBOOT_SRC_CLONED_STAMP):
 
 uboot-help:
 	@$(PRINTF) '%s\n' "U-Boot targets:"
-	@$(call print_help-entry,"uboot-rebuild","Forces a rebuild after an initial build")
+	@$(call print_help_entry,"uboot-rebuild","Forces a rebuild after an initial build")
 	@$(call print_help_entry,"uboot-stage","Stage U-Boot ELF for bootgen")
 	@$(call print_help_entry,"uboot-build","Builds U-Boot and device tree")
 	@$(call print_help_entry,"uboot-defconfig","Runs the U-Boot defconfig with default config")
@@ -77,7 +79,7 @@ uboot-help:
 uboot-clean:
 	rm -rf $(UBOOT_BUILD_DIR)
 	rm -f $(STAGING_DIR)/$(UBOOT_ELF)
-	rm -f $(STAGING_DIR)/$(UBOOT_DEVICE_TREE).dtb
+	rm -f $(STAGING_DIR)/u-boot.dtb
 	rm -f $(UBOOT_STAGED_STAMP)
 	rm -f $(UBOOT_SRC_DIR)/compile_commands.json
 

@@ -6,13 +6,13 @@ FSBL_SRC_GENERATE_STAMP		:= $(FSBL_SRC_GENERATE_DIR)/.stamp_fsbl_src_generated
 # the FSBL source does not support out-of-tree builds
 FSBL_SRC_DIR			:= $(BUILD_DIR)/zynq_fsbl
 FSBL_SRC_COPIED_STAMP		:= $(FSBL_SRC_DIR)/.stamp_fsbl_src_copied
-FSBL_ELF_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_fsbl_elf_staged
+FSBL_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_fsbl_elf_staged
 
 .PHONY: fsbl-stage fsbl-build fsbl-generate fsbl-help fsbl-clean fsbl-distclean
 
-fsbl-stage: $(FSBL_ELF_STAGED_STAMP)
+fsbl-stage: $(FSBL_STAGED_STAMP)
 
-$(FSBL_ELF_STAGED_STAMP): $(FSBL_SRC_DIR)/$(FSBL_ELF)
+$(FSBL_STAGED_STAMP): $(FSBL_SRC_DIR)/$(FSBL_ELF)
 	install -D -m 644 $< $(STAGING_DIR)/$(FSBL_ELF)
 	touch $@
 
@@ -46,7 +46,7 @@ fsbl-help:
 fsbl-clean:
 	rm -rf $(FSBL_SRC_DIR)
 	rm -rf $(HW_EXPORT_DIR)
-	rm -f $(FSBL_ELF_STAGED_STAMP)
+	rm -f $(FSBL_STAGED_STAMP)
 	rm -f $(STAGING_DIR)/$(FSBL_ELF)
 
 fsbl-distclean: fsbl-clean

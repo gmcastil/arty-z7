@@ -4,6 +4,7 @@ NPROC			:= $(shell nproc)
 # Top level directories that all subsystems inherit
 REPO_DIR		:= $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 SCRIPTS_DIR		:= $(REPO_DIR)/scripts
+BIF_DIR			:= $(REPO_DIR)/bif
 BUILD_DIR		:= $(REPO_DIR)/build
 EXTERN_DIR		:= $(REPO_DIR)/extern
 
@@ -14,7 +15,9 @@ HW_EXPORT_DIR		:= $(BUILD_DIR)/hw_export
 PRINTF			:= builtin printf
 VIVADO			:= vivado
 XSCT			:= xsct
-QEMU			:= qemu-system-aarch64
+# QEMU			:= qemu-system-aarch64
+QEMU			:= qemu-system-arm
+BOOTGEN			:= bootgen
 
 .PHONY: help
 help:
@@ -27,6 +30,10 @@ help:
 	@$(MAKE) --no-print-directory fsbl-help
 	@$(PRINTF) '\n'
 	@$(MAKE) --no-print-directory uboot-help
+	@$(PRINTF) '\n'
+	@$(MAKE) --no-print-directory qemu-help
+	@$(PRINTF) '\n'
+	@$(MAKE) --no-print-directory boot-help
 
 include $(REPO_DIR)/mk/config.mk
 include $(REPO_DIR)/mk/functions.mk
@@ -34,10 +41,12 @@ include $(REPO_DIR)/mk/vivado.mk
 include $(REPO_DIR)/mk/fsbl.mk
 include $(REPO_DIR)/mk/uboot.mk
 include $(REPO_DIR)/mk/qemu.mk
+include $(REPO_DIR)/mk/boot.mk
 
 fetch-extern: uboot-fetch
 
 clean:
 	@$(MAKE) vivado-clean
 	@$(MAKE) fsbl-clean
-
+	@$(MAKE) uboot-clean
+	@$(MAKE) boot-clean

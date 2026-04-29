@@ -19,26 +19,24 @@ linux-release:
 
 linux-stage: $(LINUX_STAGED_STAMP)
 
-# We don't stage anything until the rootfs has been created
 $(LINUX_STAGED_STAMP): \
-	$(ROOTFS_STAMP_DONE) \
 	$(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/$(LINUX_IMAGE) \
 	$(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/dts/xilinx/$(LINUX_DEVICE_TREE).dtb
-	mkdir -pv $(ROOTFS_DIR)/lib $(ROOTFS_DIR)/usr
+	mkdir -pv $(LINUX_STAGE_DIR)/lib $(LINUX_STAGE_DIR)/usr
 	# Install the kernel image
 	install -D -m 644 $(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/$(LINUX_IMAGE) \
 		$(STAGING_DIR)/$(LINUX_IMAGE)
 	# Install the kernel modules
 	$(MAKE) -C $(LINUX_SRC_DIR) -j$(NPROC) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
-		O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(ROOTFS_DIR) modules_install
+		O=$(LINUX_BUILD_DIR) INSTALL_MOD_PATH=$(LINUX_STAGE_DIR) modules_install
 	# Install kernel headers
 	$(MAKE) -C $(LINUX_SRC_DIR) -j$(NPROC) CROSS_COMPILE=$(CROSS_COMPILE) ARCH=$(ARCH) \
-		O=$(LINUX_BUILD_DIR) INSTALL_HDR_PATH=$(ROOTFS_DIR)/usr headers_install
+		O=$(LINUX_BUILD_DIR) INSTALL_HDR_PATH=$(LINUX_STAGE_DIR)/usr headers_install
 	# Install the kernel device tree
 	install -D -m 644 $(LINUX_BUILD_DIR)/arch/$(ARCH)/boot/dts/xilinx/$(LINUX_DEVICE_TREE).dtb \
-		$(STAGING_DIR)/$(LINUX_DEVICE_TREE).dtb
+		$(STAGING_DIR)/system.dtb
 	# Remove the broken symlink left behind
-	rm -f $(ROOTFS_DIR)/lib/modules/$(LINUX_RELEASE)/build
+	rm -f $(LINUX_STAGE_DIR)/lib/modules/$(LINUX_RELEASE)/build
 	touch $@
 
 linux-build: \
@@ -96,7 +94,7 @@ linux-help:
 	@$(call print_help_entry,"linux-rebuild","Forces a rebuild after an initial build")
 	@$(call print_help_entry,"linux-release","Runs the kernelrelease target")
 	@$(call print_help_entry,"linux-stage","Stages the kernel and modules before creating rootfs")
-	@$(call print_help_entry,"linux-build","Builds kernel, modules, and device tree")
+	@$(call print_help_entry,"linux-build","Builds kernel with modules and device tree")
 	@$(call print_help_entry,"linux-build-dt","Builds kernel device tree only")
 	@$(call print_help_entry,"linux-defconfig","Runs the kernel defconfig with default config")
 	@$(call print_help_entry,"linux-menuconfig","Runs the kernel menuconfig")
@@ -106,8 +104,8 @@ linux-help:
 linux-clean:
 	rm -rf $(LINUX_BUILD_DIR)
 	rm -f $(STAGING_DIR)/$(LINUX_IMAGE)
-	rm -f $(STAGING_DIR)/$(LINUX_DEVICE_TREE).dtb
+	rm -f $(STAGING_DIR)/system.dtb
 	rm -f $(LINUX_STAGED_STAMP)
-	rm -rf $(ROOTFS_DIR)/lib/modules/$(LINUX_RELEASE)
+	rm -rf $(LINUX_STAGE_DIR)/lib/modules/$(LINUX_RELEASE)
 	@$(PRINTF) '%s\n' "NOTE: Kernel headers may be left behind in $(ROOTFS_DIR)/usr/include"
 

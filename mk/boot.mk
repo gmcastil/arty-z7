@@ -3,7 +3,7 @@
 boot-stage: $(STAGING_DIR)/BOOT.BIN
 
 $(STAGING_DIR)/BOOT.BIN: $(STAGING_DIR)/$(BOOT_BIF) $(FSBL_STAGED_STAMP) $(UBOOT_STAGED_STAMP) $(VIVADO_STAGED_STAMP)
-	cd $(STAGING_DIR) && $(BOOTGEN) -image $(BOOT_BIF) -arch $(PLATFORM) -o BOOT.BIN -log trace
+	cd $(STAGING_DIR) && $(BOOTGEN) -image $(BOOT_BIF) -arch $(PLATFORM) -o BOOT.BIN -log trace -w on
 	cd $(STAGING_DIR) && md5sum system.bit fsbl.elf u-boot.elf u-boot.dtb > BOOT.MD5
 
 $(STAGING_DIR)/$(BOOT_BIF): $(BIF_DIR)/$(BOOT_BIF)

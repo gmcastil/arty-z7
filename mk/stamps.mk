@@ -19,4 +19,4 @@ LINUX_CONFIG_STAMP		:= $(LINUX_BUILD_DIR)/.stamp_linux_src_config
 LINUX_STAGED_STAMP		:= $(STAGING_DIR)/.stamp_linux_staged
 
 # Rootfs stamps
-ROOTFS_STAMP_DONE		:= $(ROOTFS_DIR)/.stamp_rootfs_done
+ROOTFS_STAMP_DONE		:= $(STAGING_DIR)/.stamp_rootfs_done

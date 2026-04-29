@@ -1,0 +1,51 @@
+#!/bin/bash
+
+log_err () {
+    local msg
+    msg="${1}"
+    printf 'Error: %s\n' "${msg}" >&2
+}
+
+depends_on () {
+    local cmd
+    cmd="${1}"
+    if ! command -v "${cmd}" >/dev/null 2>&1; then
+        log_err "Could not find '${cmd}' in PATH."
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Make sure that some binaries that aren't normally installed are accessible
+depends_on mkdosfs || exit 1
+depends_on mcopy || exit 1
+depends_on genext2fs || exit 1
+depends_on bmaptool || exit 1
+depends_on genimage || exit 1
+depends_on fakeroot || exit 1
+
+for var in BUILD_DIR STAGING_DIR REPO_DIR; do
+    if [[ -z "${!var}" || ! -d "${!var}" ]]; then
+        log_err "${var} is unset"
+        exit 1
+    fi
+done
+
+if [[ -z "${ROOTFS_DIR}" ]]; then
+    log_err "ROOTFS_DIR is unset"
+    exit 1
+fi
+
+fakeroot bash -c "
+    PATH=${PATH}:/sbin:/usr/sbin && \
+    mkdir -pv ${ROOTFS_DIR} && \
+    tar -xf ${ROOTFS_DIR}.tar -C ${ROOTFS_DIR} && \
+    rm -rf ${BUILD_DIR}/genimage-tmp && \
+    genimage \
+        --config ${REPO_DIR}/cfg/genimage.cfg \
+        --rootpath ${ROOTFS_DIR} \
+        --inputpath ${STAGING_DIR} \
+        --outputpath ${BUILD_DIR} \
+        --tmppath ${BUILD_DIR}/genimage-tmp
+    "

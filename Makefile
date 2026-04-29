@@ -19,6 +19,7 @@ XSCT			:= xsct
 # QEMU			:= qemu-system-aarch64
 QEMU			:= qemu-system-arm
 BOOTGEN			:= bootgen
+DEBSTRAP		:= mmdebstrap
 
 .PHONY: help
 help:
@@ -57,3 +58,5 @@ clean:
 	@$(MAKE) uboot-clean
 	@$(MAKE) boot-clean
 	@$(MAKE) linux-clean
+	rm -rf $(REPO_DIR)/NA
+	rm -rf $(REPO_DIR)/.Xil

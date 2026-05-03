@@ -38,6 +38,8 @@ help:
 	@$(MAKE) --no-print-directory boot-help
 	@$(PRINTF) '\n'
 	@$(MAKE) --no-print-directory linux-help
+	@$(PRINTF) '\n'
+	@$(MAKE) --no-print-directory rootfs-help
 
 include $(REPO_DIR)/mk/config.mk
 include $(REPO_DIR)/mk/stamps.mk
@@ -58,5 +60,6 @@ clean:
 	@$(MAKE) uboot-clean
 	@$(MAKE) boot-clean
 	@$(MAKE) linux-clean
+	@$(MAKE) rootfs-clean
 	rm -rf $(REPO_DIR)/NA
 	rm -rf $(REPO_DIR)/.Xil

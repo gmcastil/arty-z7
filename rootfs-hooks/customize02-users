@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if ! source "$(dirname "$0")/common.sh"; then
+    printf '%s\n' "Error: Could not source common.sh" >&2
+    exit 1
+fi
+
+log_info "Creating user ${USERNAME}"
+
+chroot "$1" \
+    useradd \
+    -G adm,dialout,kmem,cdrom,floppy,audio,dip,video,netdev,plugdev,staff,i2c \
+    --shell /bin/bash \
+    --home-dir "/home/${USERNAME}" \
+    --user-group \
+    --create-home \
+    "${USERNAME}"
+
+chroot "$1" passwd --delete "${USERNAME}"
+chroot "$1" passwd --expire "${USERNAME}"
+
+echo "${USERNAME}  ALL=NOPASSWD: ALL" >> /etc/sudoers

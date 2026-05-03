@@ -1,22 +1,25 @@
-.PHONY: rootfs-bootstrap rootfs-image
+ROOTFS_PACKAGES		:= $(shell cat $(REPO_DIR)/cfg/rootfs-packages.txt | tr '\n' ',')
+ROOTFS_TAR		:= $(STAGING_DIR)/rootfs.tar
 
-rootfs-bootstrap: $(ROOTFS_STAMP_DONE)
+.PHONY: rootfs-bootstrap rootfs-image rootfs-help
 
-$(ROOTFS_STAMP_DONE): $(LINUX_STAGED_STAMP)
+rootfs-bootstrap: $(ROOTFS_DONE_STAMP)
+
+$(ROOTFS_DONE_STAMP): $(LINUX_STAGED_STAMP)
 	# Build our rootfs as a tarball first to get around some permissions problems
 	$(DEBSTRAP) \
+		--aptopt='Acquire::http { Proxy "http://localhost:3142"; }' \
+		--logfile=$(REPO_DIR)/rootfs-build.log \
+		--verbose \
 		--arch=armhf trixie \
-		--include=openssh-server \
-		--include=build-essential \
-		--include=python3 \
-		--include=vim \
-		--customize-hook='mkdir -p $$1/lib/modules && cp -r $(LINUX_STAGE_DIR)/lib/modules/$(LINUX_RELEASE)-* $$1/lib/modules/' \
-		--customize-hook='mkdir -p $$1/boot/extlinux && cp $(REPO_DIR)/cfg/extlinux.conf $$1/boot/extlinux/' \
-		--customize-hook='cp -rT $(LINUX_STAGE_DIR)/usr/include $$1/usr/include' \
-		$(ROOTFS_DIR).tar
+		--include=$(ROOTFS_PACKAGES) \
+		--hook-dir=$(REPO_DIR)/rootfs-hooks \
+		--customize-hook='mkdir -p "$$1/lib/modules" && cp -a $(LINUX_STAGE_DIR)/lib/modules/. "$$1/lib/modules/"' \
+		--customize-hook='mkdir -p "$$1/usr/include" && cp -a $(LINUX_STAGE_DIR)/usr/include/. "$$1/usr/include/"' \
+		$(ROOTFS_TAR)
 	touch $@
 
-rootfs-image: $(LINUX_STAGED_STAMP) $(ROOTFS_STAMP_DONE) $(STAGING_DIR)/BOOT.BIN
+rootfs-image: $(LINUX_STAGED_STAMP) $(ROOTFS_DONE_STAMP) $(STAGING_DIR)/BOOT.BIN
 	mkdir -pv $(STAGING_DIR)/extlinux
 	cp $(REPO_DIR)/cfg/extlinux.conf $(STAGING_DIR)/extlinux/extlinux.conf
 	# Pass environment variables to the build-rootfs script (it relies on those being set)
@@ -25,5 +28,12 @@ rootfs-image: $(LINUX_STAGED_STAMP) $(ROOTFS_STAMP_DONE) $(STAGING_DIR)/BOOT.BIN
 		PATH=$(PATH):/sbin:/usr/sbin \
 		$(SCRIPTS_DIR)/build-rootfs
 
+rootfs-help:
+	@$(PRINTF) '%s\n' "Rootfs targets:"
+	@$(call print_help_entry,"rootfs-bootstrap","Builds a rootfs tarball via mmdebstrap")
+	@$(call print_help_entry,"rootfs-image","Builds a bootable image file suitable for writing to SD")
+
 rootfs-clean:
-	rm -rf $(ROOTFS_DIR)
+	rm -f $(ROOTFS_TAR)
+	rm -f $(ROOTFS_DONE_STAMP)
+	rm -f rootfs-build.log

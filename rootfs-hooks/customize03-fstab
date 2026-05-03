@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if ! source "$(dirname "$0")/common.sh"; then
+    printf '%s\n' "Error: Could not source common.sh" >&2
+    exit 1
+fi
+
+log_info "Creating /etc/fstab"
+
+# Blow away the existing one
+cat > "$1/etc/fstab" << EOF
+/dev/mmcblk0p1  /boot  vfat  defaults,noatime  0  ${BOOT_PASS}
+/dev/mmcblk0p2  /      ext4  defaults,noatime  0  ${ROOT_PASS}
+EOF
+

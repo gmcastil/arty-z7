@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if ! source "$(dirname "$0")/common.sh"; then
+    printf '%s\n' "Error: Could not source common.sh" >&2
+    exit 1
+fi
+
+log_info "Adding service to regenerate SSH host keys on first boot"
+
+cat > "$1/etc/systemd/system/regen_ssh_keys.service" << EOF
+[Unit]
+Description=Regenerate SSH host keys
+Before=ssh.service
+
+[Service]
+Type=oneshot
+ExecStartPre=-/bin/sh -c "/bin/rm -f -v /etc/ssh/ssh_host_*_key*"
+ExecStart=/usr/bin/ssh-keygen -A -v
+ExecStartPost=/bin/systemctl disable regen_ssh_keys.service
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
+ln -sf /etc/systemd/system/regen_ssh_keys.service \
+    "$1/etc/systemd/system/multi-user.target.wants/regen_ssh_keys.service"

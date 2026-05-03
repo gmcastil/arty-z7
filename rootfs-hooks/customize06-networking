@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if ! source "$(dirname "$0")/common.sh"; then
+    printf '%s\n' "Error: Could not source common.sh" >&2
+    exit 1
+fi
+
+# First set the hostname
+log_info "Set hostname to ${HOSTNAME}"
+cat > "$1/etc/hostname" << EOF
+${HOSTNAME}
+EOF
+
+# Set the interface to use DHCP
+log_info "Configuring networking for device ${ETH_DEV}"
+cat > "$1/etc/network/interfaces.d/${ETH_DEV}" << EOF
+auto ${ETH_DEV}
+iface ${ETH_DEV} inet dhcp
+EOF
+

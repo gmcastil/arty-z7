@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if ! source "$(dirname "$0")/common.sh"; then
+    printf '%s\n' "Error: Could not source common.sh" >&2
+    exit 1
+fi
+
+log_info "Adding service to resize root partition on first boot"
+
+cat > "$1/etc/systemd/system/firstboot-resize.service" << EOF
+[Unit]
+Description=Resize root filesystem after first boot
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/parted /dev/mmcblk0 resizepart 2 100%
+ExecStartPost=/sbin/resize2fs /dev/mmcblk0p2
+ExecStartPost=/bin/systemctl disable firstboot-resize.service
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+mkdir -p "$1/etc/systemd/system/multi-user.target.wants"
+ln -sf /etc/systemd/system/firstboot-resize.service \
+    "$1/etc/systemd/system/multi-user.target.wants/firstboot-resize.service"
+

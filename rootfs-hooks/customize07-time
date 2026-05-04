@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if ! source "$(dirname "$0")/common.sh"; then
+	printf '%s\n' "Error: Could not source common.sh" >&2
+	exit 1
+fi
+
+log_info "Configuring network time"
+
+chroot "$1" systemctl enable systemd-timesyncd
+ln -sfv "/usr/share/zoneinfo/${TIMEZONE}" "$1/etc/localtime"
+echo "${TIMEZONE}" >"$1/etc/timezone"

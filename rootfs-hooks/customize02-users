@@ -19,4 +19,4 @@ chroot "$1" \
 chroot "$1" passwd --delete "${USERNAME}"
 chroot "$1" passwd --expire "${USERNAME}"
 
-echo "${USERNAME}  ALL=NOPASSWD: ALL" >> /etc/sudoers
+echo "${USERNAME}  ALL=NOPASSWD: ALL" >> "$1/etc/sudoers"

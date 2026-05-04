@@ -15,4 +15,4 @@ wget
 vim
 curl
 gdb
-
+systemd-timesyncd

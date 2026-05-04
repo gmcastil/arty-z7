@@ -1,3 +1,11 @@
+# For development (iteration) it may be helpful to use 'apt-cacher-ng' but for production
+# this leaves behind an /etc/apt/apt.conf.d/99mmdebstrap which causes errors when running 'apt update'
+ROOTFS_USE_APT_CACHE	?= 0
+
+ifeq ($(ROOTFS_USE_APT_CACHE),1)
+ROOTFS_APTCACHE_OPT		:= --aptopt='Acquire::http { Proxy "http://localhost:3142"; }'
+endif
+
 ROOTFS_PACKAGES		:= $(shell cat $(REPO_DIR)/cfg/rootfs-packages.txt | tr '\n' ',')
 ROOTFS_TAR		:= $(STAGING_DIR)/rootfs.tar
 
@@ -8,7 +16,7 @@ rootfs-bootstrap: $(ROOTFS_DONE_STAMP)
 $(ROOTFS_DONE_STAMP): $(LINUX_STAGED_STAMP)
 	# Build our rootfs as a tarball first to get around some permissions problems
 	$(DEBSTRAP) \
-		--aptopt='Acquire::http { Proxy "http://localhost:3142"; }' \
+		$(ROOTFS_APTCACHE_OPT) \
 		--logfile=$(REPO_DIR)/rootfs-build.log \
 		--verbose \
 		--arch=armhf trixie \
@@ -32,8 +40,10 @@ rootfs-help:
 	@$(PRINTF) '%s\n' "Rootfs targets:"
 	@$(call print_help_entry,"rootfs-bootstrap","Builds a rootfs tarball via mmdebstrap")
 	@$(call print_help_entry,"rootfs-image","Builds a bootable image file suitable for writing to SD")
+	@$(call print_help_entry,"rootfs-clean","Removes all boot and rootfs components")
 
 rootfs-clean:
 	rm -f $(ROOTFS_TAR)
 	rm -f $(ROOTFS_DONE_STAMP)
+	rm -f $(BUILD_DIR)/boot.img
 	rm -f rootfs-build.log

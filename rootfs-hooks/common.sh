@@ -4,6 +4,7 @@ USERNAME=castillo
 BOOT_PASS=0
 ROOT_PASS=1
 ETH_DEV=end0
+TIMEZONE="America/Denver"
 
 log_err () {
     local msg

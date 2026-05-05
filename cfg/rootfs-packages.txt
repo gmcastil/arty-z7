@@ -1,3 +1,4 @@
+tasksel
 locales
 vim
 openssh-server
@@ -16,3 +17,7 @@ vim
 curl
 gdb
 systemd-timesyncd
+manpages
+man-db
+ca-certificates
+git

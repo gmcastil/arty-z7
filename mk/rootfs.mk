@@ -13,7 +13,7 @@ ROOTFS_TAR		:= $(STAGING_DIR)/rootfs.tar
 
 rootfs-bootstrap: $(ROOTFS_DONE_STAMP)
 
-$(ROOTFS_DONE_STAMP): $(LINUX_STAGED_STAMP)
+$(ROOTFS_DONE_STAMP): $(LINUX_STAGED_STAMP) $(REPO_DIR)/cfg/rootfs-packages.txt
 	# Build our rootfs as a tarball first to get around some permissions problems
 	$(DEBSTRAP) \
 		$(ROOTFS_APTCACHE_OPT) \
